@@ -278,4 +278,4 @@ Distribuído sob a licença MIT. Veja LICENSE para mais informações.
 📞 Contato
 Equipe de Desenvolvimento - contatocsmpm@gmail.com
 
-Link do Projeto: https://github.com/seu-usuario/sistema-abastecimento-medicamentos
+Link do Projeto: https://github.com/casmtts/sistema-abastecimento-medicamentos
