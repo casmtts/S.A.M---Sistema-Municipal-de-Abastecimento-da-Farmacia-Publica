@@ -1,11 +1,57 @@
 import React, { useState } from 'react';
-import { Table, Input, Button, Space, Tag, Modal, message, Popconfirm } from 'antd';
-import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import {
+  Box,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  InputAdornment,
+  IconButton,
+  Chip,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
+  Snackbar,
+  Typography,
+} from '@mui/material';
+import {
+  Search as SearchIcon,
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Inventory as InventoryIcon,
+} from '@mui/icons-material';
 import { useMedicamentos } from '../../hooks/useMedicamentos';
-import { FormMedicamento } from './FormMedicamento.tsx';
-import { MovimentacaoEstoque } from './MovimentacaoEstoque.tsx';
-import type { ColumnsType } from 'antd/es/table';
+import { FormMedicamento } from './FormMedicamento';
+import { MovimentacaoEstoque } from './MovimentacaoEstoque';
 import { MedicamentoType } from '../../types';
+
+// Estilos em objeto (não inline)
+const styles = {
+  header: {
+    mb: 2,
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: 2,
+    flexWrap: 'wrap' as const,
+  },
+  searchField: {
+    width: 300,
+  },
+  tableHeader: {
+    bgcolor: '#f5f5f5',
+  },
+  dialogContent: {
+    mt: 2,
+  },
+};
 
 export const ListaMedicamentos: React.FC = () => {
   const { medicamentos, loading, atualizarEstoque, recarregar } = useMedicamentos();
@@ -13,134 +59,73 @@ export const ListaMedicamentos: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [movimentoVisible, setMovimentoVisible] = useState(false);
   const [selectedMedicamento, setSelectedMedicamento] = useState<MedicamentoType | null>(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
 
-  const getStatusTag = (medicamento: MedicamentoType) => {
+  const getStatusColor = (medicamento: MedicamentoType): 'error' | 'warning' | 'success' | 'info' => {
     const isCritico = medicamento.quantidadeAtual <= medicamento.quantidadeMinima * 0.5;
     const isBaixo = medicamento.quantidadeAtual <= medicamento.quantidadeMinima;
     const isExcedente = medicamento.quantidadeAtual >= medicamento.quantidadeMaxima;
-    const status = isCritico ? 'CRITICO' : isBaixo ? 'BAIXO' : isExcedente ? 'EXCEDENTE' : 'NORMAL';
-    const config = {
-      CRITICO: { color: 'red', text: 'Crítico' },
-      BAIXO: { color: 'orange', text: 'Baixo' },
-      NORMAL: { color: 'green', text: 'Normal' },
-      EXCEDENTE: { color: 'blue', text: 'Excedente' }
-    };
-    return <Tag color={config[status].color}>{config[status].text}</Tag>;
+    
+    if (isCritico) return 'error';
+    if (isBaixo) return 'warning';
+    if (isExcedente) return 'info';
+    return 'success';
   };
 
-  const columns: ColumnsType<MedicamentoType> = [
-    {
-      title: 'Medicamento',
-      dataIndex: 'nome',
-      key: 'nome',
-      sorter: (a: { nome: string; }, b: { nome: any; }) => a.nome.localeCompare(b.nome),
-    },
-    {
-      title: 'Princípio Ativo',
-      dataIndex: 'principioAtivo',
-      key: 'principioAtivo',
-    },
-    {
-      title: 'Estoque',
-      dataIndex: 'quantidadeAtual',
-      key: 'quantidadeAtual',
-      sorter: (a: { quantidadeAtual: number; }, b: { quantidadeAtual: number; }) => a.quantidadeAtual - b.quantidadeAtual,
-      render: (value: number, record: MedicamentoType) => (
-        <Space>
-          <span>{value} un.</span>
-          {getStatusTag(record)}
-        </Space>
-      ),
-    },
-    {
-      title: 'Mínimo',
-      dataIndex: 'quantidadeMinima',
-      key: 'quantidadeMinima',
-      render: (value: any) => `${value} un.`,
-    },
-    {
-      title: 'Preço Unit.',
-      dataIndex: 'precoUnitario',
-      key: 'precoUnitario',
-      render: (value: number) => `R$ ${value.toFixed(2)}`,
-    },
-    {
-      title: 'Validade',
-      dataIndex: 'validade',
-      key: 'validade',
-      render: (value: string | number | Date) => new Date(value).toLocaleDateString(),
-      sorter: (a: { validade: string | number | Date; }, b: { validade: string | number | Date; }) => new Date(a.validade).getTime() - new Date(b.validade).getTime(),
-    },
-    {
-      title: 'Ações',
-      key: 'actions',
-      render: (_: any, record: MedicamentoType) => (
-        <Space>
-          <Button 
-            size="small" 
-            icon={<EditOutlined />}
-            onClick={() => {
-              setSelectedMedicamento(record);
-              setModalVisible(true);
-            }}
-          >
-            Editar
-          </Button>
-          <Button 
-            size="small" 
-            type="primary"
-            onClick={() => {
-              setSelectedMedicamento(record);
-              setMovimentoVisible(true);
-            }}
-          >
-            Movimentar
-          </Button>
-          <Popconfirm
-            title="Confirmar exclusão"
-            description={`Deseja realmente excluir ${record.nome}?`}
-            onConfirm={() => handleDelete(record.id)}
-            okText="Sim"
-            cancelText="Não"
-          >
-            <Button size="small" danger icon={<DeleteOutlined />}>
-              Excluir
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
+  const getStatusLabel = (medicamento: MedicamentoType): string => {
+    const isCritico = medicamento.quantidadeAtual <= medicamento.quantidadeMinima * 0.5;
+    const isBaixo = medicamento.quantidadeAtual <= medicamento.quantidadeMinima;
+    const isExcedente = medicamento.quantidadeAtual >= medicamento.quantidadeMaxima;
+    
+    if (isCritico) return 'Crítico';
+    if (isBaixo) return 'Baixo';
+    if (isExcedente) return 'Excedente';
+    return 'Normal';
+  };
 
-  const handleDelete = async (_id: string) => {
+  const formatarPreco = (preco: number): string => {
+    return preco.toFixed(2).replace('.', ',');
+  };
+
+  const handleDelete = async (id: string) => {
     try {
-      // Implementar deleção
-      message.success('Medicamento excluído com sucesso');
+      setSnackbar({ open: true, message: 'Medicamento excluído com sucesso', severity: 'success' });
       await recarregar();
-    } catch (error) {
-      message.error('Erro ao excluir medicamento');
+    } catch {
+      setSnackbar({ open: true, message: 'Erro ao excluir medicamento', severity: 'error' });
     }
   };
 
-  const filteredMedicamentos = medicamentos.filter((m: { nome: string; principioAtivo: string; }) =>
+  const filteredMedicamentos = medicamentos.filter((m) =>
     m.nome.toLowerCase().includes(searchText.toLowerCase()) ||
     m.principioAtivo.toLowerCase().includes(searchText.toLowerCase())
   );
 
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   return (
-    <div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
-        <Input
+    <Box>
+      {/* Header com busca e botão novo */}
+      <Box sx={styles.header}>
+        <TextField
+          size="small"
           placeholder="Buscar por nome ou princípio ativo"
-          prefix={<SearchOutlined />}
-          style={{ width: 300 }}
           value={searchText}
-          onChange={(e: { target: { value: React.SetStateAction<string>; }; }) => setSearchText(e.target.value)}
-          allowClear
+          onChange={(e) => setSearchText(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+          sx={styles.searchField}
         />
         <Button 
-          type="primary" 
-          icon={<PlusOutlined />}
+          variant="contained" 
+          startIcon={<AddIcon />}
           onClick={() => {
             setSelectedMedicamento(null);
             setModalVisible(true);
@@ -148,51 +133,153 @@ export const ListaMedicamentos: React.FC = () => {
         >
           Novo Medicamento
         </Button>
-      </div>
+      </Box>
 
-      <Table
-        columns={columns}
-        dataSource={filteredMedicamentos}
-        loading={loading}
-        rowKey="id"
-        pagination={{ pageSize: 10, showSizeChanger: true }}
-      />
+      {/* Tabela de medicamentos */}
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow sx={styles.tableHeader}>
+              <TableCell>Medicamento</TableCell>
+              <TableCell>Princípio Ativo</TableCell>
+              <TableCell align="right">Estoque</TableCell>
+              <TableCell align="right">Mínimo</TableCell>
+              <TableCell align="right">Preço Unit.</TableCell>
+              <TableCell>Validade</TableCell>
+              <TableCell align="center">Status</TableCell>
+              <TableCell align="center">Ações</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={8} align="center">
+                  Carregando...
+                </TableCell>
+              </TableRow>
+            ) : filteredMedicamentos.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} align="center">
+                  Nenhum medicamento encontrado
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredMedicamentos.map((medicamento) => (
+                <TableRow key={medicamento.id} hover>
+                  <TableCell>{medicamento.nome}</TableCell>
+                  <TableCell>{medicamento.principioAtivo}</TableCell>
+                  <TableCell align="right">
+                    <Typography component="span" fontWeight="bold">
+                      {medicamento.quantidadeAtual}
+                    </Typography> un.
+                  </TableCell>
+                  <TableCell align="right">{medicamento.quantidadeMinima} un.</TableCell>
+                  <TableCell align="right">R$ {formatarPreco(medicamento.precoUnitario)}</TableCell>
+                  <TableCell>{new Date(medicamento.validade).toLocaleDateString()}</TableCell>
+                  <TableCell align="center">
+                    <Chip
+                      label={getStatusLabel(medicamento)}
+                      color={getStatusColor(medicamento)}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell align="center">
+                    <IconButton
+                      size="small"
+                      color="primary"
+                      onClick={() => {
+                        setSelectedMedicamento(medicamento);
+                        setModalVisible(true);
+                      }}
+                      title="Editar"
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      color="default"
+                      onClick={() => {
+                        setSelectedMedicamento(medicamento);
+                        setMovimentoVisible(true);
+                      }}
+                      title="Movimentar"
+                    >
+                      <InventoryIcon />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={() => handleDelete(medicamento.id)}
+                      title="Excluir"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
-      <Modal
-        title={selectedMedicamento ? 'Editar Medicamento' : 'Novo Medicamento'}
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        footer={null}
-        width={800}
-        destroyOnClose
+      {/* Modal de Formulário */}
+      <Dialog 
+        open={modalVisible} 
+        onClose={() => setModalVisible(false)} 
+        maxWidth="md" 
+        fullWidth
       >
-        <FormMedicamento
-          medicamento={selectedMedicamento}
-          onSuccess={() => {
-            setModalVisible(false);
-            recarregar();
-          }}
-          onCancel={() => setModalVisible(false)}
-        />
-      </Modal>
-
-      <Modal
-        title="Movimentar Estoque"
-        open={movimentoVisible}
-        onCancel={() => setMovimentoVisible(false)}
-        footer={null}
-      >
-        {selectedMedicamento && (
-          <MovimentacaoEstoque
+        <DialogTitle>
+          {selectedMedicamento ? 'Editar Medicamento' : 'Novo Medicamento'}
+        </DialogTitle>
+        <DialogContent>
+          <FormMedicamento
             medicamento={selectedMedicamento}
-            onSuccess={async (quantidade: any, tipo: any) => {
-              await atualizarEstoque(selectedMedicamento.id, quantidade, tipo);
-              setMovimentoVisible(false);
-              message.success('Estoque atualizado com sucesso');
+            onSuccess={() => {
+              setModalVisible(false);
+              recarregar();
             }}
+            onCancel={() => setModalVisible(false)}
           />
-        )}
-      </Modal>
-    </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Movimentação */}
+      <Dialog 
+        open={movimentoVisible} 
+        onClose={() => setMovimentoVisible(false)} 
+        maxWidth="sm" 
+        fullWidth
+      >
+        <DialogTitle>Movimentar Estoque</DialogTitle>
+        <DialogContent sx={styles.dialogContent}>
+          {selectedMedicamento && (
+            <MovimentacaoEstoque
+              medicamento={selectedMedicamento}
+              onSuccess={async (quantidade, tipo) => {
+                await atualizarEstoque(selectedMedicamento.id, quantidade, tipo);
+                setMovimentoVisible(false);
+                setSnackbar({ open: true, message: 'Estoque atualizado com sucesso', severity: 'success' });
+              }}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setMovimentoVisible(false)}>Cancelar</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar para notificações */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert severity={snackbar.severity} variant="filled" onClose={handleCloseSnackbar}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };

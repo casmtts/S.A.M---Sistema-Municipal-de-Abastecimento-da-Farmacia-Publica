@@ -33,6 +33,26 @@ import { FormMedicamento } from './FormMedicamento';
 import { MovimentacaoEstoque } from './MovimentacaoEstoque';
 import { MedicamentoType } from '../../types';
 
+// Estilos em objeto (não inline)
+const styles = {
+  header: {
+    mb: 2,
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: 2,
+    flexWrap: 'wrap' as const,
+  },
+  searchField: {
+    width: 300,
+  },
+  tableHeader: {
+    bgcolor: '#f5f5f5',
+  },
+  dialogContent: {
+    mt: 2,
+  },
+};
+
 export const ListaMedicamentos: React.FC = () => {
   const { medicamentos, loading, atualizarEstoque, recarregar } = useMedicamentos();
   const [searchText, setSearchText] = useState('');
@@ -63,9 +83,12 @@ export const ListaMedicamentos: React.FC = () => {
     return 'Normal';
   };
 
+  const formatarPreco = (preco: number): string => {
+    return preco.toFixed(2).replace('.', ',');
+  };
+
   const handleDelete = async (id: string) => {
     try {
-      // Implementar deleção
       setSnackbar({ open: true, message: 'Medicamento excluído com sucesso', severity: 'success' });
       await recarregar();
     } catch {
@@ -85,7 +108,7 @@ export const ListaMedicamentos: React.FC = () => {
   return (
     <Box>
       {/* Header com busca e botão novo */}
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+      <Box sx={styles.header}>
         <TextField
           size="small"
           placeholder="Buscar por nome ou princípio ativo"
@@ -98,7 +121,7 @@ export const ListaMedicamentos: React.FC = () => {
               </InputAdornment>
             ),
           }}
-          sx={{ width: 300 }}
+          sx={styles.searchField}
         />
         <Button 
           variant="contained" 
@@ -116,7 +139,7 @@ export const ListaMedicamentos: React.FC = () => {
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
-            <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+            <TableRow sx={styles.tableHeader}>
               <TableCell>Medicamento</TableCell>
               <TableCell>Princípio Ativo</TableCell>
               <TableCell align="right">Estoque</TableCell>
@@ -151,7 +174,7 @@ export const ListaMedicamentos: React.FC = () => {
                     </Typography> un.
                   </TableCell>
                   <TableCell align="right">{medicamento.quantidadeMinima} un.</TableCell>
-                  <TableCell align="right">R$ {medicamento.precoUnitario.toFixed(2)}</TableCell>
+                  <TableCell align="right">R$ {formatarPreco(medicamento.precoUnitario)}</TableCell>
                   <TableCell>{new Date(medicamento.validade).toLocaleDateString()}</TableCell>
                   <TableCell align="center">
                     <Chip
@@ -229,7 +252,7 @@ export const ListaMedicamentos: React.FC = () => {
         fullWidth
       >
         <DialogTitle>Movimentar Estoque</DialogTitle>
-        <DialogContent>
+        <DialogContent sx={styles.dialogContent}>
           {selectedMedicamento && (
             <MovimentacaoEstoque
               medicamento={selectedMedicamento}
