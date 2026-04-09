@@ -21,11 +21,13 @@ import {
   Inventory2 as Inventory2Icon,
   Logout as LogoutIcon,
   AccountCircle as AccountCircleIcon,
+  TableChart,
 } from '@mui/icons-material';
 import { DashboardPage } from '../pages/DashboardPage';
 import { EstoquePage } from '../pages/EstoquePage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
+import { RelatorioPage } from '../pages/RelatoriosPage';
 
 const theme = createTheme({
   palette: {
@@ -112,6 +114,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: <DashboardIcon fontSize="small" /> },
     { label: 'Estoque', path: '/estoque', icon: <Inventory2Icon fontSize="small" /> },
+    { label: 'Relatórios', path: '/relatorios', icon: <TableChart fontSize="small" /> },
+
   ];
 
   return (
@@ -181,7 +185,7 @@ export const AppRoutes: React.FC = () => {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          
+
           <Route path="/*" element={
             <ProtectedRoute>
               <MainLayout>
@@ -189,6 +193,7 @@ export const AppRoutes: React.FC = () => {
                   <Route index element={<Navigate to="/dashboard" />} />
                   <Route path="dashboard" element={<DashboardPage />} />
                   <Route path="estoque" element={<EstoquePage />} />
+                  <Route path="relatorios" element={<RelatorioPage />} />
                 </Routes>
               </MainLayout>
             </ProtectedRoute>
