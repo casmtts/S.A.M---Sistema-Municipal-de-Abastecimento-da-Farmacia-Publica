@@ -191,6 +191,11 @@ export const Dashboard: React.FC = () => {
   );
   const valorMedioPorMedicamento = medicamentos.length ? totalEstoque / medicamentos.length : 0;
 
+  // Função auxiliar para formatar valores com vírgula como separador decimal
+  const formatarMoeda = (valor: number): string => {
+    return valor.toFixed(2).replace('.', ',');
+  };
+
   const modalContent = useMemo(() => {
     switch (openDetail) {
       case 'medicamentos':
@@ -199,7 +204,7 @@ export const Dashboard: React.FC = () => {
           lines: [
             `Total cadastrados: ${medicamentos.length}`,
             `Unidades em estoque: ${totalUnidades}`,
-            `Media por medicamento: ${medicamentos.length ? Math.round(totalUnidades / medicamentos.length) : 0} un.`,
+            `Média por medicamento: ${medicamentos.length ? Math.round(totalUnidades / medicamentos.length) : 0} un.`,
           ],
           list: topEstoque.map((m) => `${m.nome} - ${m.quantidadeAtual} un.`),
         };
@@ -207,15 +212,15 @@ export const Dashboard: React.FC = () => {
         return {
           title: 'Valor em Estoque',
           lines: [
-            `Valor total: R$ ${totalEstoque.toFixed(2)}`,
-            `Valor medio por medicamento: R$ ${valorMedioPorMedicamento.toFixed(2)}`,
+            `Valor total: R$ ${formatarMoeda(totalEstoque)}`,
+            `Valor médio por medicamento: R$ ${formatarMoeda(valorMedioPorMedicamento)}`,
             `Itens em estoque: ${totalUnidades} un.`,
           ],
-          list: topEstoque.map((m) => `${m.nome} - R$ ${(m.quantidadeAtual * m.precoUnitario).toFixed(2)}`),
+          list: topEstoque.map((m) => `${m.nome} - R$ ${formatarMoeda(m.quantidadeAtual * m.precoUnitario)}`),
         };
       case 'dispensas':
         return {
-          title: 'Dispensas Concluidas',
+          title: 'Dispensas Concluídas',
           lines: [
             `Dispensas concluídas: ${dispensasConcluidas}`,
             `Pedidos pendentes: ${pedidosPendentes.length}`,
@@ -232,7 +237,7 @@ export const Dashboard: React.FC = () => {
             `Baixos: ${alertas.baixos}`,
           ],
           list: [...alertasDetalhados.criticos, ...alertasDetalhados.baixos].map(
-            (m) => `${m.nome} - atual ${m.quantidadeAtual} / minimo ${m.quantidadeMinima}`
+            (m) => `${m.nome} - atual ${m.quantidadeAtual} / mínimo ${m.quantidadeMinima}`
           ),
         };
       case 'itens':
@@ -322,7 +327,7 @@ export const Dashboard: React.FC = () => {
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Valor em Estoque"
-            value={`R$ ${totalEstoque.toFixed(2)}`}
+            value={`R$ ${formatarMoeda(totalEstoque)}`}
             icon={<AttachMoneyIcon fontSize="medium" />}
             accent="#2e7d32"
             trend={trends.valorTrend}
