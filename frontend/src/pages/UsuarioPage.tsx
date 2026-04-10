@@ -1,4 +1,3 @@
-// src/pages/UsuariosPage.tsx
 import React from 'react';
 import { Box, Typography, Paper } from '@mui/material';
 import { ListaUsuarios } from '../components/UsuariosPermissoes/ListaUsuario';

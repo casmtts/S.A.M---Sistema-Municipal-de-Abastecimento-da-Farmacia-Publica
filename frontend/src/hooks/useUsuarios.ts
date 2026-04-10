@@ -1,4 +1,3 @@
-// src/hooks/useUsuarios.ts
 import { useState, useEffect, useCallback } from 'react';
 import { UsuarioType, CreateUsuarioDTO, UserRole } from '../types';
 
