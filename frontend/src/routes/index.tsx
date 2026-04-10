@@ -31,7 +31,7 @@ import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import Relatorio from '../pages/RelatorioPage';
 import { CadastroPage } from '../pages/CadastroPage';
-import UsuarioPage  from '../pages/UsuarioPage';
+import UsuarioPage from '../pages/UsuarioPage';
 
 const theme = createTheme({
   palette: {
