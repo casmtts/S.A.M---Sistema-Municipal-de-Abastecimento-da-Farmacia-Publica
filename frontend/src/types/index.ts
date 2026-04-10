@@ -56,3 +56,89 @@ export interface FornecedorType {
   email: string;
   ativo: boolean;
 }
+
+export interface FornecedorType {
+  id: string;
+  nome: string;
+  razaoSocial: string;
+  cnpj: string;
+  inscricaoEstadual: string;
+  endereco: string;
+  numero: string;
+  complemento: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+  cep: string;
+  telefone: string;
+  email: string;
+  contato: string;
+  prazoEntrega: number; // dias
+  condicoesPagamento: string;
+  ativo: boolean;
+  observacoes: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface UnidadeSaudeType {
+  id: string;
+  nome: string;
+  tipo: 'UBS' | 'UPA' | 'HOSPITAL' | 'CENTRO_ESPECIALIZADO' | 'FARMACIA';
+  codigo: string;
+  endereco: string;
+  numero: string;
+  complemento: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+  cep: string;
+  telefone: string;
+  email: string;
+  responsavel: string;
+  horarioFuncionamento: string;
+  ativo: boolean;
+  observacoes: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreateFornecedorDTO {
+  nome: string;
+  razaoSocial: string;
+  cnpj: string;
+  inscricaoEstadual: string;
+  endereco: string;
+  numero: string;
+  complemento: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+  cep: string;
+  telefone: string;
+  email: string;
+  contato: string;
+  prazoEntrega: number;
+  condicoesPagamento: string;
+  ativo: boolean;
+  observacoes: string;
+}
+
+export interface CreateUnidadeSaudeDTO {
+  nome: string;
+  tipo: 'UBS' | 'UPA' | 'HOSPITAL' | 'CENTRO_ESPECIALIZADO' | 'FARMACIA';
+  codigo: string;
+  endereco: string;
+  numero: string;
+  complemento: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+  cep: string;
+  telefone: string;
+  email: string;
+  responsavel: string;
+  horarioFuncionamento: string;
+  ativo: boolean;
+  observacoes: string;
+}

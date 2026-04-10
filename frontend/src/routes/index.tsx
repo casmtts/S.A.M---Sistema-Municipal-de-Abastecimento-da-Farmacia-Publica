@@ -22,12 +22,14 @@ import {
   Logout as LogoutIcon,
   AccountCircle as AccountCircleIcon,
   TableChart,
+  Business as BusinessIcon,
 } from '@mui/icons-material';
 import { DashboardPage } from '../pages/DashboardPage';
 import { EstoquePage } from '../pages/EstoquePage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
-import { RelatorioPage } from '../pages/RelatoriosPage';
+import Relatorio from '../pages/RelatorioPage';
+import { CadastroPage } from '../pages/CadastroPage';
 
 const theme = createTheme({
   palette: {
@@ -62,6 +64,12 @@ const theme = createTheme({
       styleOverrides: {
         body: {
           backgroundColor: '#f4f8ff',
+        },
+        a: {
+          textDecoration: 'none',
+          '&:hover': {
+            textDecoration: 'none',
+          },
         },
       },
     },
@@ -114,21 +122,43 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: <DashboardIcon fontSize="small" /> },
     { label: 'Estoque', path: '/estoque', icon: <Inventory2Icon fontSize="small" /> },
+    { label: 'Cadastros', path: '/cadastros', icon: <BusinessIcon fontSize="small" /> },
     { label: 'Relatórios', path: '/relatorios', icon: <TableChart fontSize="small" /> },
-
   ];
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar position="static">
         <Toolbar sx={{ justifyContent: 'space-between', gap: 2 }}>
-          <Typography variant="h6" component="div" sx={{ whiteSpace: 'nowrap' }}>
-            Sistema de Abastecimento
-          </Typography>
+          <Box
+            component={RouterLink}
+            to="/dashboard"
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              textDecoration: 'none',
+              '&:hover': {
+                textDecoration: 'none',
+              },
+            }}
+          >
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{
+                whiteSpace: 'nowrap',
+                color: '#fff',
+                fontWeight: 700,
+                textDecoration: 'none',
+              }}
+            >
+              Sistema de Abastecimento
+            </Typography>
+          </Box>
 
           <Stack direction="row" spacing={1} sx={{ flex: 1, justifyContent: 'center' }}>
             {navItems.map((item) => {
-              const active = location.pathname.startsWith(item.path);
+              const active = location.pathname === item.path;
               return (
                 <Button
                   key={item.path}
@@ -140,6 +170,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     bgcolor: active ? 'rgba(255,255,255,0.18)' : 'transparent',
                     border: active ? '1px solid rgba(255,255,255,0.25)' : '1px solid transparent',
                     '&:hover': { bgcolor: 'rgba(255,255,255,0.12)' },
+                    textTransform: 'none',
                   }}
                 >
                   {item.label}
@@ -165,7 +196,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <Divider />
             <MenuItem onClick={handleLogout}>
               <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
-              Deslogar
+              Sair
             </MenuItem>
           </Menu>
         </Toolbar>
@@ -185,19 +216,42 @@ export const AppRoutes: React.FC = () => {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-
-          <Route path="/*" element={
+          
+          {/* ✅ CORREÇÃO: Rotas separadas, sem aninhamento */}
+          <Route path="/dashboard" element={
             <ProtectedRoute>
               <MainLayout>
-                <Routes>
-                  <Route index element={<Navigate to="/dashboard" />} />
-                  <Route path="dashboard" element={<DashboardPage />} />
-                  <Route path="estoque" element={<EstoquePage />} />
-                  <Route path="relatorios" element={<RelatorioPage />} />
-                </Routes>
+                <DashboardPage />
               </MainLayout>
             </ProtectedRoute>
           } />
+          
+          <Route path="/estoque" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <EstoquePage />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/cadastros" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <CadastroPage />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/relatorios" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Relatorio />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
