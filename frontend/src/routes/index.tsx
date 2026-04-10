@@ -23,6 +23,7 @@ import {
   AccountCircle as AccountCircleIcon,
   TableChart,
   Business as BusinessIcon,
+  People,
 } from '@mui/icons-material';
 import { DashboardPage } from '../pages/DashboardPage';
 import { EstoquePage } from '../pages/EstoquePage';
@@ -30,6 +31,7 @@ import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import Relatorio from '../pages/RelatorioPage';
 import { CadastroPage } from '../pages/CadastroPage';
+import UsuarioPage  from '../pages/UsuarioPage';
 
 const theme = createTheme({
   palette: {
@@ -124,6 +126,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { label: 'Estoque', path: '/estoque', icon: <Inventory2Icon fontSize="small" /> },
     { label: 'Cadastros', path: '/cadastros', icon: <BusinessIcon fontSize="small" /> },
     { label: 'Relatórios', path: '/relatorios', icon: <TableChart fontSize="small" /> },
+    { label: 'Usuários', path: '/usuarios', icon: <People fontSize="small" /> },
+
   ];
 
   return (
@@ -216,8 +220,7 @@ export const AppRoutes: React.FC = () => {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          
-          {/* ✅ CORREÇÃO: Rotas separadas, sem aninhamento */}
+
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <MainLayout>
@@ -225,7 +228,7 @@ export const AppRoutes: React.FC = () => {
               </MainLayout>
             </ProtectedRoute>
           } />
-          
+
           <Route path="/estoque" element={
             <ProtectedRoute>
               <MainLayout>
@@ -233,7 +236,7 @@ export const AppRoutes: React.FC = () => {
               </MainLayout>
             </ProtectedRoute>
           } />
-          
+
           <Route path="/cadastros" element={
             <ProtectedRoute>
               <MainLayout>
@@ -241,7 +244,7 @@ export const AppRoutes: React.FC = () => {
               </MainLayout>
             </ProtectedRoute>
           } />
-          
+
           <Route path="/relatorios" element={
             <ProtectedRoute>
               <MainLayout>
@@ -249,7 +252,15 @@ export const AppRoutes: React.FC = () => {
               </MainLayout>
             </ProtectedRoute>
           } />
-          
+
+          <Route path="/usuarios" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <UsuarioPage />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
