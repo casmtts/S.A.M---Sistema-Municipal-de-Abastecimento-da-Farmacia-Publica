@@ -67,9 +67,9 @@ O **Sistema de Abastecimento de Medicamentos** foi desenvolvido para otimizar a 
 - **Recharts** - Gráficos e visualizações
 
 ### Backend (planejado)
-- **Node.js** + **Express**
+- **Node.js** 
 - **PostgreSQL** - Banco de dados
-- **Prisma** - ORM
+- **NESTJS** - ORM
 - **JWT** - Autenticação
 
 ### DevOps
