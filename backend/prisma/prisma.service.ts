@@ -8,17 +8,20 @@ export class PrismaService
 {
   constructor() {
     super({
-      log: ['info', 'warn', 'error'],
+      log:
+        process.env.NODE_ENV === 'development'
+          ? ['query', 'info', 'warn', 'error']
+          : ['error'],
     });
   }
 
   async onModuleInit() {
     await this.$connect();
-    console.log('✅ Conectado ao PostgreSQL');
+    console.log('✅ Conectado ao banco de dados');
   }
 
   async onModuleDestroy() {
     await this.$disconnect();
-    console.log('🔌 Desconectado do PostgreSQL');
+    console.log('🔌 Desconectado do banco de dados');
   }
 }

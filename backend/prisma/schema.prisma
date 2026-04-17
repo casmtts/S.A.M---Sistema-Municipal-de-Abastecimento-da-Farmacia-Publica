@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,187 +7,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ==================== ENUMS ====================
-
 enum UserRole {
-  ADMIN          // Acesso total ao sistema
-  GESTOR         // Aprovar pedidos, relatórios
-  FARMACEUTICO   // Gerenciar estoque, criar pedidos
-  ATENDENTE      // Consultar estoque, dispensar
-  CONSULTOR      // Apenas visualizar
+  ADMIN
+  GESTOR
+  FARMACEUTICO
+  ATENDENTE
+  CONSULTOR
 }
-
-enum StatusPedido {
-  PENDENTE
-  APROVADO
-  EM_ANALISE
-  ENVIADO
-  ENTREGUE
-  CANCELADO
-}
-
-enum TipoMovimentacao {
-  ENTRADA      // Compra, reposição
-  SAIDA        // Perda, devolução
-  DISPENSA     // Para paciente
-}
-
-enum TipoUnidade {
-  UBS                  // Unidade Básica de Saúde
-  UPA                  // Unidade de Pronto Atendimento
-  HOSPITAL
-  CENTRO_ESPECIALIZADO
-  FARMACIA
-}
-
-// ==================== MODELS ====================
 
 model Usuario {
-  id              String          @id @default(uuid())
-  nome            String
-  email           String          @unique
-  cpf             String          @unique
-  senha           String
-  role            UserRole        @default(ATENDENTE)
-  ativo           Boolean         @default(true)
-  telefone        String?
-  cargo           String?
-  unidadeId       String?
-  ultimoAcesso    DateTime?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-
-  // Relações
-  movimentacoes        Movimentacao[]
-  pedidosSolicitados   Pedido[]     @relation("PedidoSolicitante")
-  pedidosAprovados     Pedido[]     @relation("PedidoAprovador")
+  id           String    @id @default(uuid())
+  nome         String
+  email        String    @unique
+  cpf          String    @unique
+  senha        String
+  role         UserRole  @default(ATENDENTE)
+  ativo        Boolean   @default(true)
+  telefone     String?
+  cargo        String?
+  unidadeId    String?
+  ultimoAcesso DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@map("usuarios")
-}
-
-model Medicamento {
-  id                String          @id @default(uuid())
-  nome              String
-  principioAtivo    String
-  concentracao      String?
-  formaFarmaceutica String?
-  codigoBarras      String?         @unique
-  lote              String?
-  validade          DateTime
-  quantidadeAtual   Int             @default(0)
-  quantidadeMinima  Int             @default(0)
-  quantidadeMaxima  Int             @default(1000)
-  precoUnitario     Float           @default(0)
-  fornecedorId      String?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-
-  // Relações
-  fornecedor      Fornecedor?     @relation(fields: [fornecedorId], references: [id])
-  movimentacoes   Movimentacao[]
-  pedidos         Pedido[]
-
-  @@map("medicamentos")
-}
-
-model Fornecedor {
-  id                String          @id @default(uuid())
-  nome              String
-  razaoSocial       String?
-  cnpj              String          @unique
-  inscricaoEstadual String?
-  endereco          String?
-  numero            String?
-  complemento       String?
-  bairro            String?
-  cidade            String?
-  uf                String?
-  cep               String?
-  telefone          String?
-  email             String?
-  contato           String?
-  prazoEntrega      Int             @default(7)
-  condicoesPagamento String?
-  ativo             Boolean         @default(true)
-  observacoes       String?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-
-  // Relações
-  medicamentos      Medicamento[]
-
-  @@map("fornecedores")
-}
-
-model UnidadeSaude {
-  id                  String          @id @default(uuid())
-  nome                String
-  tipo                TipoUnidade
-  codigo              String          @unique
-  endereco            String?
-  numero              String?
-  complemento         String?
-  bairro              String?
-  cidade              String?
-  uf                  String?
-  cep                 String?
-  telefone            String?
-  email               String?
-  responsavel         String?
-  horarioFuncionamento String?
-  ativo               Boolean         @default(true)
-  observacoes         String?
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
-
-  @@map("unidades_saude")
-}
-
-model Pedido {
-  id                   String          @id @default(uuid())
-  medicamentoId        String
-  medicamentoNome      String
-  quantidadeSolicitada Int
-  quantidadeEntregue   Int             @default(0)
-  dataSolicitacao      DateTime        @default(now())
-  dataPrevistaEntrega  DateTime
-  dataEntregaReal      DateTime?
-  status               StatusPedido    @default(PENDENTE)
-  valorUnitario        Float
-  valorTotal           Float
-  justificativa        String?
-  solicitanteId        String
-  aprovadorId          String?
-  observacoes          String?
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
-
-  // Relações
-  medicamento   Medicamento     @relation(fields: [medicamentoId], references: [id])
-  solicitante   Usuario         @relation("PedidoSolicitante", fields: [solicitanteId], references: [id])
-  aprovador     Usuario?        @relation("PedidoAprovador", fields: [aprovadorId], references: [id])
-
-  @@map("pedidos")
-}
-
-model Movimentacao {
-  id                  String          @id @default(uuid())
-  medicamentoId       String
-  medicamentoNome     String
-  tipo                TipoMovimentacao
-  quantidade          Int
-  data                DateTime        @default(now())
-  responsavelId       String
-  responsavelNome     String
-  documentoReferencia String?
-  observacao          String?
-  unidadeOrigemId     String?
-  unidadeDestinoId    String?
-  createdAt           DateTime        @default(now())
-
-  // Relações
-  medicamento   Medicamento     @relation(fields: [medicamentoId], references: [id])
-  responsavel   Usuario         @relation(fields: [responsavelId], references: [id])
-
-  @@map("movimentacoes")
 }
