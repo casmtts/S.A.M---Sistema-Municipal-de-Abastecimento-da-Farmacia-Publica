@@ -8,18 +8,23 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3000',
+      'http://localhost:5173',
       'https://s-a-m-sistema-municipal-de-abasteci.vercel.app/',
     ],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
   });
 
-  app.setGlobalPrefix('api');
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
-  // ✅ IMPORTANTE: Usar a porta fornecida pelo Render
   const port = process.env.PORT || 3001;
-  await app.listen(port, '0.0.0.0'); // ← '0.0.0.0' é essencial!
-
-  console.log(`🚀 Servidor rodando na porta ${port}`);
+  await app.listen(port);
+  console.log(`🚀 Servidor rodando em http://localhost:${port}`);
 }
 bootstrap();
