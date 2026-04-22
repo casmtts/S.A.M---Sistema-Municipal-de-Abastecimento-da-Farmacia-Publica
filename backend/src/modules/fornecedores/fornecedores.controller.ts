@@ -20,28 +20,79 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 export class FornecedoresController {
   constructor(private readonly fornecedoresService: FornecedoresService) {}
 
+  /**
+   * Listar todos os fornecedores
+   */
   @Get()
   findAll() {
     return this.fornecedoresService.findAll();
   }
 
+  /**
+   * Listar fornecedores ativos
+   */
+  @Get('ativos')
+  findAtivos() {
+    return this.fornecedoresService.findAtivos();
+  }
+
+  /**
+   * Resumo estatístico
+   */
+  @Get('resumo')
+  getResumo() {
+    return this.fornecedoresService.getResumo();
+  }
+
+  /**
+   * Buscar fornecedor por ID
+   */
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.fornecedoresService.findOne(id);
   }
 
+  /**
+   * Buscar medicamentos de um fornecedor
+   */
+  @Get(':id/medicamentos')
+  getMedicamentosPorFornecedor(@Param('id') id: string) {
+    return this.fornecedoresService.getMedicamentosPorFornecedor(id);
+  }
+
+  /**
+   * Criar novo fornecedor (apenas ADMIN)
+   */
   @Post()
   @Roles(UserRole.ADMIN)
   create(@Body() createFornecedorDto: CreateFornecedorDto) {
     return this.fornecedoresService.create(createFornecedorDto);
   }
 
+  /**
+   * Atualizar fornecedor (apenas ADMIN)
+   */
   @Patch(':id')
   @Roles(UserRole.ADMIN)
-  update(@Param('id') id: string, @Body() updateFornecedorDto: UpdateFornecedorDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateFornecedorDto: UpdateFornecedorDto,
+  ) {
     return this.fornecedoresService.update(id, updateFornecedorDto);
   }
 
+  /**
+   * Ativar/Desativar fornecedor (apenas ADMIN)
+   */
+  @Patch(':id/toggle')
+  @Roles(UserRole.ADMIN)
+  toggleStatus(@Param('id') id: string, @Body('ativo') ativo: boolean) {
+    return this.fornecedoresService.toggleStatus(id, ativo);
+  }
+
+  /**
+   * Remover fornecedor (apenas ADMIN)
+   */
   @Delete(':id')
   @Roles(UserRole.ADMIN)
   remove(@Param('id') id: string) {

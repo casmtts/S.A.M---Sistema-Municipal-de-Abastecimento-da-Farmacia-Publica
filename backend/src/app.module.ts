@@ -6,6 +6,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsuariosModule } from './modules/usuarios/usuarios-module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { MedicamentosModule } from './modules/medicamentos/medicamentos.module';
+import { FornecedoresModule } from './modules/fornecedores/fornecedores.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { MedicamentosModule } from './modules/medicamentos/medicamentos.module';
     AuthModule,
     UsuariosModule,
     MedicamentosModule,
+    FornecedoresModule,
   ],
   providers: [
     {
