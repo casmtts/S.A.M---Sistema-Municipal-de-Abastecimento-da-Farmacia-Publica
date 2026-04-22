@@ -1,3 +1,4 @@
+// src/modules/medicamentos/medicamentos.controller.ts
 import {
   Controller,
   Get,
@@ -11,49 +12,66 @@ import {
 import { MedicamentosService } from './medicamentos.service';
 import { CreateMedicamentoDto } from './dto/create-medicamento.dto';
 import { UpdateMedicamentoDto } from './dto/update-medicamento.dto';
-import { UpdateEstoqueDto } from './dto/update-medicamento.dto';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { UserRole } from '../../common/enums/user-role.enum';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { UpdateEstoqueDto } from './dto/update-estoque.dto';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 @Controller('medicamentos')
-@UseGuards(RolesGuard)
+@UseGuards(JwtAuthGuard)
 export class MedicamentosController {
   constructor(private readonly medicamentosService: MedicamentosService) {}
 
-  @Get()
-  findAll() {
-    return this.medicamentosService.findAll();
+  // =============================================
+  // 1. PRIMEIRO: Rotas com palavras ESPECÍFICAS
+  // =============================================
+
+  @Get('vencer/:dias')
+  getProximosVencer(@Param('dias') dias: string) {
+    console.log('🟢 Rota /vencer/:dias chamada com dias:', dias);
+    return this.medicamentosService.getProximosVencer(parseInt(dias));
   }
 
   @Get('alertas')
   getAlertas() {
+    console.log('🟢 Rota /alertas chamada');
     return this.medicamentosService.getAlertasEstoque();
-  }
-
-  @Get('vencer/:dias')
-  getProximosVencer(@Param('dias') dias: string) {
-    return this.medicamentosService.getProximosVencer(parseInt(dias));
   }
 
   @Get('resumo')
   getResumo() {
+    console.log('🟢 Rota /resumo chamada');
     return this.medicamentosService.getResumo();
   }
 
+  // =============================================
+  // 2. SEGUNDO: Rotas SEM palavras (GET geral)
+  // =============================================
+
+  @Get()
+  findAll() {
+    console.log('🟢 Rota GET / chamada');
+    return this.medicamentosService.findAll();
+  }
+
+  // =============================================
+  // 3. TERCEIRO: Rotas com PARÂMETRO DINÂMICO
+  // =============================================
+
   @Get(':id')
   findOne(@Param('id') id: string) {
+    console.log('🟢 Rota /:id chamada com id:', id);
     return this.medicamentosService.findOne(id);
   }
 
+  // =============================================
+  // 4. QUARTO: Rotas POST, PATCH, DELETE
+  // =============================================
+
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.FARMACEUTICO)
   create(@Body() createMedicamentoDto: CreateMedicamentoDto) {
     return this.medicamentosService.create(createMedicamentoDto);
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN, UserRole.FARMACEUTICO)
   update(
     @Param('id') id: string,
     @Body() updateMedicamentoDto: UpdateMedicamentoDto,
@@ -62,7 +80,6 @@ export class MedicamentosController {
   }
 
   @Patch(':id/estoque')
-  @Roles(UserRole.ADMIN, UserRole.FARMACEUTICO, UserRole.ATENDENTE)
   updateEstoque(
     @Param('id') id: string,
     @Body() updateEstoqueDto: UpdateEstoqueDto,
@@ -75,7 +92,6 @@ export class MedicamentosController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
   remove(@Param('id') id: string) {
     return this.medicamentosService.remove(id);
   }

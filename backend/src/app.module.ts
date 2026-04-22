@@ -5,6 +5,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsuariosModule } from './modules/usuarios/usuarios-module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { MedicamentosModule } from './modules/medicamentos/medicamentos.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     PrismaModule,
     AuthModule,
     UsuariosModule,
+    MedicamentosModule,
   ],
   providers: [
     {
