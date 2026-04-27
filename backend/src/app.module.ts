@@ -7,6 +7,8 @@ import { UsuariosModule } from './modules/usuarios/usuarios-module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { MedicamentosModule } from './modules/medicamentos/medicamentos.module';
 import { FornecedoresModule } from './modules/fornecedores/fornecedores.module';
+import { PedidosModule } from './modules/pedidos/pedidos.module';
+import { UnidadesSaudeModule } from './modules/unidadesSaude/unidades-saude.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { FornecedoresModule } from './modules/fornecedores/fornecedores.module';
     UsuariosModule,
     MedicamentosModule,
     FornecedoresModule,
+    PedidosModule,
+    UnidadesSaudeModule,
   ],
   providers: [
     {
