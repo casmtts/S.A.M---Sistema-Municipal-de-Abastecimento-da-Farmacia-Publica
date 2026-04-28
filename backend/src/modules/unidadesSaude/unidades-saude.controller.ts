@@ -20,15 +20,50 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 export class UnidadesSaudeController {
   constructor(private readonly unidadesSaudeService: UnidadesSaudeService) {}
 
+  // ========== ROTAS ESPECÍFICAS (PRIMEIRO) ==========
+
+  @Get('ativas')
+  findAtivas() {
+    return this.unidadesSaudeService.findAtivas();
+  }
+
+  @Get('resumo')
+  getResumo() {
+    return this.unidadesSaudeService.getResumo();
+  }
+
+  // ========== ROTAS COM PARÂMETROS DE BUSCA ==========
+
+  @Get('tipo/:tipo')
+  findByTipo(@Param('tipo') tipo: string) {
+    return this.unidadesSaudeService.findByTipo(tipo);
+  }
+
+  @Get('cidade/:cidade')
+  findByCidade(@Param('cidade') cidade: string) {
+    return this.unidadesSaudeService.findByCidade(cidade);
+  }
+
+  @Get('codigo/:codigo')
+  findByCodigo(@Param('codigo') codigo: string) {
+    return this.unidadesSaudeService.findByCodigo(codigo);
+  }
+
+  // ========== ROTAS SEM PARÂMETROS ==========
+
   @Get()
   findAll() {
     return this.unidadesSaudeService.findAll();
   }
 
+  // ========== ROTAS COM PARÂMETRO ID ==========
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.unidadesSaudeService.findOne(id);
   }
+
+  // ========== ROTAS POST, PATCH, DELETE ==========
 
   @Post()
   @Roles(UserRole.ADMIN)
@@ -40,6 +75,12 @@ export class UnidadesSaudeController {
   @Roles(UserRole.ADMIN)
   update(@Param('id') id: string, @Body() updateUnidadeDto: UpdateUnidadeDto) {
     return this.unidadesSaudeService.update(id, updateUnidadeDto);
+  }
+
+  @Patch(':id/toggle')
+  @Roles(UserRole.ADMIN)
+  toggleStatus(@Param('id') id: string, @Body('ativo') ativo: boolean) {
+    return this.unidadesSaudeService.toggleStatus(id, ativo);
   }
 
   @Delete(':id')

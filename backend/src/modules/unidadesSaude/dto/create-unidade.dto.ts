@@ -6,6 +6,7 @@ import {
   IsEnum,
   MinLength,
   MaxLength,
+  IsNotEmpty,
 } from 'class-validator';
 
 export enum TipoUnidade {
@@ -18,6 +19,7 @@ export enum TipoUnidade {
 
 export class CreateUnidadeDto {
   @IsString()
+  @IsNotEmpty()
   @MinLength(3)
   @MaxLength(100)
   nome: string;
@@ -26,6 +28,7 @@ export class CreateUnidadeDto {
   tipo: TipoUnidade;
 
   @IsString()
+  @IsNotEmpty()
   @MinLength(3)
   @MaxLength(20)
   codigo: string;
@@ -72,6 +75,7 @@ export class CreateUnidadeDto {
 
   @IsOptional()
   @IsEmail()
+  @MaxLength(100)
   email?: string;
 
   @IsOptional()
