@@ -9,6 +9,7 @@ import { MedicamentosModule } from './modules/medicamentos/medicamentos.module';
 import { FornecedoresModule } from './modules/fornecedores/fornecedores.module';
 import { PedidosModule } from './modules/pedidos/pedidos.module';
 import { UnidadesSaudeModule } from './modules/unidadesSaude/unidades-saude.module';
+import { MovimentacoesModule } from './modules/movimentacoes/movimentacoes.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { UnidadesSaudeModule } from './modules/unidadesSaude/unidades-saude.modu
     FornecedoresModule,
     PedidosModule,
     UnidadesSaudeModule,
+    MovimentacoesModule,
   ],
   providers: [
     {
