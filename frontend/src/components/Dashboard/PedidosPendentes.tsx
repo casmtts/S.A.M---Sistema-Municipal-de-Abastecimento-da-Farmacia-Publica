@@ -34,7 +34,7 @@ export const PedidosPendentes: React.FC<PedidosPendentesProps> = ({ pedidos }) =
     <TableContainer component={Paper} elevation={0}>
       <Table size="small">
         <TableHead>
-          <TableRow>
+          <TableRow sx={{ bgcolor: '#f5f5f5' }}>
             <TableCell>Medicamento</TableCell>
             <TableCell align="right">Quantidade</TableCell>
             <TableCell>Data Solicitação</TableCell>
@@ -44,14 +44,10 @@ export const PedidosPendentes: React.FC<PedidosPendentesProps> = ({ pedidos }) =
         </TableHead>
         <TableBody>
           {pedidos.map((pedido) => (
-            <TableRow key={pedido.id}>
-              <TableCell component="th" scope="row">
-                {pedido.medicamentoNome}
-              </TableCell>
+            <TableRow key={pedido.id} hover>
+              <TableCell>{pedido.medicamentoNome}</TableCell>
               <TableCell align="right">{pedido.quantidadeSolicitada} un.</TableCell>
-              <TableCell>
-                {format(new Date(pedido.dataSolicitacao), 'dd/MM/yyyy')}
-              </TableCell>
+              <TableCell>{format(new Date(pedido.dataSolicitacao), 'dd/MM/yyyy')}</TableCell>
               <TableCell align="center">
                 <Chip
                   label={pedido.status}

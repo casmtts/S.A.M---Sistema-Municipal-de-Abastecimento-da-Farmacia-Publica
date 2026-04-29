@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
     Box,
     Paper,
@@ -27,6 +27,7 @@ import {
     DialogContent,
     DialogActions,
     Grid,
+    CircularProgress,
 } from '@mui/material';
 import {
     PictureAsPdf as PdfIcon,
@@ -36,8 +37,8 @@ import {
     CleaningServices as CleaningIcon,
     TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
-import { useMedicamentos } from '../../hooks/useMedicamentos';
-import { usePedidos } from '../../hooks/usePedidos';
+import { MedicamentoType, PedidoType } from '../../types';
+import api from '../../services/api';
 
 const styles = {
     container: {
@@ -76,13 +77,42 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => {
 };
 
 export const Relatorios: React.FC = () => {
-    const { medicamentos, loading: loadingMed } = useMedicamentos();
-    const { pedidos, loading: loadingPed } = usePedidos();
+    const [medicamentos, setMedicamentos] = useState<MedicamentoType[]>([]);
+    const [pedidos, setPedidos] = useState<PedidoType[]>([]);
+    const [loading, setLoading] = useState(true);
     const [tabValue, setTabValue] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('todos');
     const [exportDialog, setExportDialog] = useState(false);
     const [exportType, setExportType] = useState<'pdf' | 'excel' | null>(null);
+
+    // Carregar dados da API
+    const carregarMedicamentos = async () => {
+        try {
+            const response = await api.get('/medicamentos');
+            setMedicamentos(response.data);
+        } catch (error) {
+            console.error('Erro ao carregar medicamentos:', error);
+        }
+    };
+
+    const carregarPedidos = async () => {
+        try {
+            const response = await api.get('/pedidos');
+            setPedidos(response.data);
+        } catch (error) {
+            console.error('Erro ao carregar pedidos:', error);
+        }
+    };
+
+    useEffect(() => {
+        const carregarDados = async () => {
+            setLoading(true);
+            await Promise.all([carregarMedicamentos(), carregarPedidos()]);
+            setLoading(false);
+        };
+        carregarDados();
+    }, []);
 
     // Dados filtrados
     const filteredMedicamentos = useMemo(() => {
@@ -152,10 +182,13 @@ export const Relatorios: React.FC = () => {
         setStatusFilter('todos');
     };
 
-    if (loadingMed || loadingPed) {
+    if (loading) {
         return (
             <Box sx={styles.container}>
-                <Typography>Carregando relatórios...</Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+                    <CircularProgress />
+                    <Typography sx={{ ml: 2 }}>Carregando relatórios...</Typography>
+                </Box>
             </Box>
         );
     }
@@ -215,6 +248,7 @@ export const Relatorios: React.FC = () => {
                 <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)} sx={{ px: 2, pt: 2 }}>
                     <Tab label="Medicamentos" />
                     <Tab label="Pedidos" />
+                    <Tab label="Movimentações" />
                     <Tab label="Resumo Geral" />
                 </Tabs>
 
@@ -365,8 +399,20 @@ export const Relatorios: React.FC = () => {
                     </Box>
                 </TabPanel>
 
-                {/* Tab Resumo Geral */}
+                {/* Tab Movimentações */}
                 <TabPanel value={tabValue} index={2}>
+                    <Box sx={{ px: 2, pb: 2 }}>
+                        <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                            Histórico de movimentações em desenvolvimento
+                        </Typography>
+                        <Alert severity="info">
+                            Em breve: histórico completo de entradas, saídas e dispensas de medicamentos.
+                        </Alert>
+                    </Box>
+                </TabPanel>
+
+                {/* Tab Resumo Geral */}
+                <TabPanel value={tabValue} index={3}>
                     <Box sx={{ px: 2, pb: 2 }}>
                         <Grid container spacing={3}>
                             <Grid item xs={12} md={6}>
@@ -469,7 +515,8 @@ export const Relatorios: React.FC = () => {
                         <Typography variant="caption" color="textSecondary">
                             {tabValue === 0 && 'Exportando lista de medicamentos'}
                             {tabValue === 1 && 'Exportando lista de pedidos'}
-                            {tabValue === 2 && 'Exportando resumo geral'}
+                            {tabValue === 2 && 'Exportando movimentações'}
+                            {tabValue === 3 && 'Exportando resumo geral'}
                         </Typography>
                     </Box>
                 </DialogContent>
@@ -483,3 +530,5 @@ export const Relatorios: React.FC = () => {
         </Box>
     );
 };
+
+export default Relatorios;

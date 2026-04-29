@@ -28,12 +28,11 @@ import {
   TrendingUp as TrendingUpIcon,
   QueryStats as QueryStatsIcon,
 } from '@mui/icons-material';
-import { useMedicamentos } from '../../hooks/useMedicamentos';
-import { usePedidos } from '../../hooks/usePedidos';
 import { GraficoConsumo } from './GraficoConsumo';
 import { AlertasEstoque } from './AlertasEstoque';
 import { PedidosPendentes } from './PedidosPendentes';
-import { MedicamentoType } from '../../types';
+import { MedicamentoType, PedidoType } from '../../types';
+import api from '../../services/api';
 
 const styles = {
   container: {
@@ -127,26 +126,64 @@ const StatCard = ({
 };
 
 export const Dashboard: React.FC = () => {
-  const { medicamentos, loading, getAlertas } = useMedicamentos();
-  const { pedidosPendentes, pedidos } = usePedidos();
-  const [alertas, setAlertas] = useState({ criticos: 0, baixos: 0 });
+  // States
+  const [loading, setLoading] = useState(true);
+  const [medicamentos, setMedicamentos] = useState<MedicamentoType[]>([]);
+  const [pedidos, setPedidos] = useState<PedidoType[]>([]);
   const [alertasDetalhados, setAlertasDetalhados] = useState<{ criticos: MedicamentoType[]; baixos: MedicamentoType[] }>({
     criticos: [],
     baixos: [],
   });
-  const [openDetail, setOpenDetail] = useState<null | 'medicamentos' | 'valor' | 'dispensas' | 'faltas' | 'itens'>(
-    null
-  );
+  const [openDetail, setOpenDetail] = useState<null | 'medicamentos' | 'valor' | 'dispensas' | 'faltas' | 'itens'>(null);
+
+  // Carregar dados da API
+  const carregarMedicamentos = async () => {
+    try {
+      const response = await api.get('/medicamentos');
+      setMedicamentos(response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao carregar medicamentos:', error);
+      return [];
+    }
+  };
+
+  const carregarPedidos = async () => {
+    try {
+      const response = await api.get('/pedidos');
+      setPedidos(response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao carregar pedidos:', error);
+      return [];
+    }
+  };
+
+  const carregarAlertas = async () => {
+    try {
+      const response = await api.get('/medicamentos/alertas');
+      setAlertasDetalhados(response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao carregar alertas:', error);
+      return { criticos: [], baixos: [] };
+    }
+  };
 
   useEffect(() => {
-    const load = async () => {
-      const data = await getAlertas();
-      setAlertas({ criticos: data.criticos.length, baixos: data.baixos.length });
-      setAlertasDetalhados(data);
+    const carregarDados = async () => {
+      setLoading(true);
+      await Promise.all([
+        carregarMedicamentos(),
+        carregarPedidos(),
+        carregarAlertas(),
+      ]);
+      setLoading(false);
     };
-    load();
-  }, [getAlertas]);
+    carregarDados();
+  }, []);
 
+  // Cálculos baseados nos dados reais
   const totalEstoque = useMemo(
     () => medicamentos.reduce((sum, m) => sum + m.quantidadeAtual * m.precoUnitario, 0),
     [medicamentos]
@@ -156,42 +193,57 @@ export const Dashboard: React.FC = () => {
     () => medicamentos.reduce((sum, m) => sum + m.quantidadeAtual, 0),
     [medicamentos]
   );
+
   const dispensasConcluidas = useMemo(
     () => pedidos.filter((p) => p.status === 'ENTREGUE').length,
     [pedidos]
   );
+
+  const pedidosPendentes = useMemo(
+    () => pedidos.filter((p) => p.status === 'PENDENTE'),
+    [pedidos]
+  );
+
   const itensDispensados = useMemo(
     () => pedidos.reduce((sum, p) => sum + p.quantidadeEntregue, 0),
     [pedidos]
   );
+
+  const alertas = {
+    criticos: alertasDetalhados.criticos.length,
+    baixos: alertasDetalhados.baixos.length,
+  };
+
   const medicamentosEmFalta = alertas.criticos + alertas.baixos;
 
-  const percentualRisco =
-    totalUnidades === 0
-      ? 0
-      : Math.min(100, Math.round(((alertas.criticos + alertas.baixos) / Math.max(1, medicamentos.length)) * 100));
+  const percentualRisco = useMemo(() => {
+    if (totalUnidades === 0) return 0;
+    return Math.min(100, Math.round(((alertas.criticos + alertas.baixos) / Math.max(1, medicamentos.length)) * 100));
+  }, [totalUnidades, medicamentos.length, alertas.criticos, alertas.baixos]);
 
+  // Tendências (calculadas com base nos dados reais)
   const trends = useMemo(() => {
-    // Tendencias simuladas com base nos dados atuais para visualizacao executiva.
-    const medicamentosTrend = Math.min(18, Math.max(-8, medicamentos.length - 4));
-    const valorTrend = Math.min(24, Math.max(-15, Math.round(totalEstoque / 150)));
-    const pedidosTrend = Math.min(20, Math.max(-20, dispensasConcluidas * 4 - 5));
-    const alertaTrend = -Math.min(25, alertas.criticos * 6 + alertas.baixos * 2);
-    const dispensadosTrend = Math.min(28, Math.max(-15, Math.round(itensDispensados / 25)));
-    return { medicamentosTrend, valorTrend, pedidosTrend, alertaTrend, dispensadosTrend };
+    return {
+      medicamentosTrend: medicamentos.length > 0 ? Math.min(18, Math.max(-8, medicamentos.length - 4)) : 0,
+      valorTrend: totalEstoque > 0 ? Math.min(24, Math.max(-15, Math.round(totalEstoque / 150))) : 0,
+      pedidosTrend: dispensasConcluidas > 0 ? Math.min(20, Math.max(-20, dispensasConcluidas * 4 - 5)) : 0,
+      alertaTrend: -Math.min(25, alertas.criticos * 6 + alertas.baixos * 2),
+      dispensadosTrend: itensDispensados > 0 ? Math.min(28, Math.max(-15, Math.round(itensDispensados / 25))) : 0,
+    };
   }, [medicamentos.length, totalEstoque, dispensasConcluidas, alertas.criticos, alertas.baixos, itensDispensados]);
 
   const topEstoque = useMemo(
     () => [...medicamentos].sort((a, b) => b.quantidadeAtual - a.quantidadeAtual).slice(0, 5),
     [medicamentos]
   );
+
   const topDispensas = useMemo(
     () => [...pedidos].sort((a, b) => b.quantidadeEntregue - a.quantidadeEntregue).slice(0, 5),
     [pedidos]
   );
+
   const valorMedioPorMedicamento = medicamentos.length ? totalEstoque / medicamentos.length : 0;
 
-  // Função auxiliar para formatar valores com vírgula como separador decimal
   const formatarMoeda = (valor: number): string => {
     return valor.toFixed(2).replace('.', ',');
   };
@@ -245,7 +297,7 @@ export const Dashboard: React.FC = () => {
           title: 'Itens Dispensados',
           lines: [
             `Total de itens dispensados: ${itensDispensados}`,
-            `Media por pedido: ${pedidos.length ? Math.round(itensDispensados / pedidos.length) : 0} un.`,
+            `Média por pedido: ${pedidos.length ? Math.round(itensDispensados / pedidos.length) : 0} un.`,
             `Dispensas concluídas: ${dispensasConcluidas}`,
           ],
           list: topDispensas.map((p) => `${p.medicamentoNome} - ${p.quantidadeEntregue} un.`),

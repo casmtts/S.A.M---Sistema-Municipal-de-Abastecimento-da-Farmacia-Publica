@@ -14,39 +14,12 @@ import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../../common/enums/user-role.enum';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 @Controller('usuarios')
-@UseGuards(RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
-
-  // ========== ROTAS ESPECÍFICAS (PRIMEIRO) ==========
-
-  @Get('ativos')
-  @Roles(UserRole.ADMIN)
-  findAtivos() {
-    return this.usuariosService.findAtivos();
-  }
-
-  @Get('resumo')
-  @Roles(UserRole.ADMIN)
-  getResumo() {
-    return this.usuariosService.getResumo();
-  }
-
-  @Get('role/:role')
-  @Roles(UserRole.ADMIN)
-  findByRole(@Param('role') role: string) {
-    return this.usuariosService.findByRole(role);
-  }
-
-  @Get('unidade/:unidadeId')
-  @Roles(UserRole.ADMIN)
-  findByUnidade(@Param('unidadeId') unidadeId: string) {
-    return this.usuariosService.findByUnidade(unidadeId);
-  }
-
-  // ========== ROTAS SEM PARÂMETROS ==========
 
   @Get()
   @Roles(UserRole.ADMIN)
@@ -54,21 +27,11 @@ export class UsuariosController {
     return this.usuariosService.findAll();
   }
 
-  // ========== ROTAS COM PARÂMETRO ==========
-
-  @Get('cpf/:cpf')
-  @Roles(UserRole.ADMIN)
-  findByCpf(@Param('cpf') cpf: string) {
-    return this.usuariosService.findByCpf(cpf);
-  }
-
   @Get(':id')
   @Roles(UserRole.ADMIN)
   findOne(@Param('id') id: string) {
     return this.usuariosService.findOne(id);
   }
-
-  // ========== ROTAS POST, PATCH, DELETE ==========
 
   @Post()
   @Roles(UserRole.ADMIN)
