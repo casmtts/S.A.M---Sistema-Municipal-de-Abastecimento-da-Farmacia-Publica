@@ -7,22 +7,19 @@ import {
   Alert,
   CircularProgress,
   DialogActions,
+  MenuItem,
 } from '@mui/material';
-import { MedicamentoType, CreateMedicamentoDTO } from '../../types';
-import { useMedicamentos } from '../../hooks/useMedicamentos';
+import { MedicamentoType } from '../../types';
+import api from '../../services/api';
 
-const styles = {
-  form: {
-    mt: 2,
-  },
-  alert: {
-    mb: 2,
-  },
-  dialogActions: {
-    mt: 3,
-    px: 0,
-  },
-};
+const tiposUnidade = [
+  { value: 'Comprimido', label: 'Comprimido' },
+  { value: 'Cápsula', label: 'Cápsula' },
+  { value: 'Solução', label: 'Solução' },
+  { value: 'Suspensão', label: 'Suspensão' },
+  { value: 'Pomada', label: 'Pomada' },
+  { value: 'Injetável', label: 'Injetável' },
+];
 
 interface FormMedicamentoProps {
   medicamento?: MedicamentoType | null;
@@ -31,17 +28,16 @@ interface FormMedicamentoProps {
 }
 
 export const FormMedicamento: React.FC<FormMedicamentoProps> = ({ medicamento, onSuccess, onCancel }) => {
-  const { criarMedicamento } = useMedicamentos();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [formData, setFormData] = useState<CreateMedicamentoDTO>({
+  const [formData, setFormData] = useState({
     nome: medicamento?.nome || '',
     principioAtivo: medicamento?.principioAtivo || '',
     concentracao: medicamento?.concentracao || '',
     formaFarmaceutica: medicamento?.formaFarmaceutica || '',
     codigoBarras: medicamento?.codigoBarras || '',
     lote: medicamento?.lote || '',
-    validade: medicamento?.validade || new Date(),
+    validade: medicamento?.validade ? new Date(medicamento.validade).toISOString().split('T')[0] : '',
     quantidadeAtual: medicamento?.quantidadeAtual || 0,
     quantidadeMinima: medicamento?.quantidadeMinima || 0,
     quantidadeMaxima: medicamento?.quantidadeMaxima || 1000,
@@ -54,179 +50,80 @@ export const FormMedicamento: React.FC<FormMedicamentoProps> = ({ medicamento, o
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleNumberChange = (name: string, value: string) => {
-    const numValue = value === '' ? 0 : Number(value);
-    setFormData(prev => ({ ...prev, [name]: numValue }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      await criarMedicamento(formData);
+      const dataToSend = {
+        ...formData,
+        validade: new Date(formData.validade),
+        quantidadeAtual: Number(formData.quantidadeAtual),
+        quantidadeMinima: Number(formData.quantidadeMinima),
+        quantidadeMaxima: Number(formData.quantidadeMaxima),
+        precoUnitario: Number(formData.precoUnitario),
+      };
+
+      if (medicamento) {
+        await api.patch(`/medicamentos/${medicamento.id}`, dataToSend);
+      } else {
+        await api.post('/medicamentos', dataToSend);
+      }
       onSuccess();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao salvar medicamento');
+    } catch (err: any) {
+      const message = err.response?.data?.message || 'Erro ao salvar medicamento';
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Formatar data para o input date (YYYY-MM-DD)
-  const formatDateForInput = (date: Date): string => {
-    return date.toISOString().split('T')[0];
-  };
-
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={styles.form}>
-      {error && (
-        <Alert severity="error" sx={styles.alert}>
-          {error}
-        </Alert>
-      )}
-
+    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       <Grid container spacing={2}>
         <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Nome do Medicamento"
-            name="nome"
-            value={formData.nome}
-            onChange={handleChange}
-            required
-            size="small"
-          />
+          <TextField fullWidth label="Nome do Medicamento" name="nome" value={formData.nome} onChange={handleChange} required size="small" />
         </Grid>
         <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Princípio Ativo"
-            name="principioAtivo"
-            value={formData.principioAtivo}
-            onChange={handleChange}
-            required
-            size="small"
-          />
+          <TextField fullWidth label="Princípio Ativo" name="principioAtivo" value={formData.principioAtivo} onChange={handleChange} required size="small" />
         </Grid>
         <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Concentração"
-            name="concentracao"
-            value={formData.concentracao}
-            onChange={handleChange}
-            placeholder="Ex: 500mg"
-            size="small"
-          />
+          <TextField fullWidth label="Concentração" name="concentracao" value={formData.concentracao} onChange={handleChange} placeholder="Ex: 500mg" size="small" />
         </Grid>
         <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Forma Farmacêutica"
-            name="formaFarmaceutica"
-            value={formData.formaFarmaceutica}
-            onChange={handleChange}
-            placeholder="Ex: Comprimido"
-            size="small"
-          />
+          <TextField fullWidth select label="Forma Farmacêutica" name="formaFarmaceutica" value={formData.formaFarmaceutica} onChange={handleChange} size="small">
+            {tiposUnidade.map(t => (<MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>))}
+          </TextField>
         </Grid>
         <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Código de Barras"
-            name="codigoBarras"
-            value={formData.codigoBarras}
-            onChange={handleChange}
-            size="small"
-          />
+          <TextField fullWidth label="Código de Barras" name="codigoBarras" value={formData.codigoBarras} onChange={handleChange} size="small" />
         </Grid>
         <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Lote"
-            name="lote"
-            value={formData.lote}
-            onChange={handleChange}
-            size="small"
-          />
+          <TextField fullWidth label="Lote" name="lote" value={formData.lote} onChange={handleChange} size="small" />
         </Grid>
         <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            type="date"
-            label="Data de Validade"
-            name="validade"
-            value={formatDateForInput(formData.validade)}
-            onChange={(e) => {
-              const newDate = new Date(e.target.value);
-              setFormData(prev => ({ ...prev, validade: newDate }));
-            }}
-            InputLabelProps={{ shrink: true }}
-            required
-            size="small"
-          />
+          <TextField fullWidth type="date" label="Data de Validade" name="validade" value={formData.validade} onChange={handleChange} InputLabelProps={{ shrink: true }} required size="small" />
         </Grid>
         <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            type="number"
-            label="Quantidade Inicial"
-            value={formData.quantidadeAtual}
-            onChange={(e) => handleNumberChange('quantidadeAtual', e.target.value)}
-            size="small"
-          />
+          <TextField fullWidth type="number" label="Quantidade Inicial" name="quantidadeAtual" value={formData.quantidadeAtual} onChange={handleChange} size="small" />
         </Grid>
         <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            type="number"
-            label="Quantidade Mínima"
-            value={formData.quantidadeMinima}
-            onChange={(e) => handleNumberChange('quantidadeMinima', e.target.value)}
-            required
-            size="small"
-          />
+          <TextField fullWidth type="number" label="Quantidade Mínima" name="quantidadeMinima" value={formData.quantidadeMinima} onChange={handleChange} required size="small" />
         </Grid>
         <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            type="number"
-            label="Quantidade Máxima"
-            value={formData.quantidadeMaxima}
-            onChange={(e) => handleNumberChange('quantidadeMaxima', e.target.value)}
-            size="small"
-          />
+          <TextField fullWidth type="number" label="Quantidade Máxima" name="quantidadeMaxima" value={formData.quantidadeMaxima} onChange={handleChange} size="small" />
         </Grid>
         <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            type="number"
-            label="Preço Unitário"
-            value={formData.precoUnitario}
-            onChange={(e) => handleNumberChange('precoUnitario', e.target.value)}
-            required
-            inputProps={{ step: 0.01, min: 0 }}
-            size="small"
-          />
+          <TextField fullWidth type="number" label="Preço Unitário" name="precoUnitario" value={formData.precoUnitario} onChange={handleChange} required inputProps={{ step: 0.01, min: 0 }} size="small" />
         </Grid>
         <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="ID do Fornecedor"
-            name="fornecedorId"
-            value={formData.fornecedorId}
-            onChange={handleChange}
-            size="small"
-          />
+          <TextField fullWidth label="ID do Fornecedor" name="fornecedorId" value={formData.fornecedorId} onChange={handleChange} size="small" />
         </Grid>
       </Grid>
-
-      <DialogActions sx={styles.dialogActions}>
-        <Button onClick={onCancel} disabled={loading}>
-          Cancelar
-        </Button>
+      <DialogActions sx={{ mt: 3, px: 0 }}>
+        <Button onClick={onCancel} disabled={loading}>Cancelar</Button>
         <Button type="submit" variant="contained" disabled={loading}>
           {loading ? <CircularProgress size={24} /> : (medicamento ? 'Atualizar' : 'Cadastrar')}
         </Button>

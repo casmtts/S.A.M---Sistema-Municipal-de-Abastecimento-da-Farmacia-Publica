@@ -1,5 +1,5 @@
 // src/pages/CadastrosPage.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -37,11 +37,9 @@ import {
   Delete as DeleteIcon,
   Business as BusinessIcon,
   LocationOn as LocationIcon,
-  CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
-import { useFornecedores } from '../../hooks/useFornecedores';
-import { useUnidadesSaude } from '../../hooks/useUnidadesSaude';
-import { FornecedorType, UnidadeSaudeType, CreateFornecedorDTO, CreateUnidadeSaudeDTO } from '../../types';
+import api from '../../services/api';
+import { FornecedorType, UnidadeSaudeType } from '../../types';
 
 const styles = {
   container: {
@@ -114,53 +112,144 @@ const tipoLabels: Record<string, string> = {
 
 export const Cadastro: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
-  
+
   // Fornecedores state
-  const { fornecedores, loading: loadingFornecedores, criarFornecedor, atualizarFornecedor, deletarFornecedor, recarregar: recarregarFornecedores } = useFornecedores();
+  const [fornecedores, setFornecedores] = useState<FornecedorType[]>([]);
+  const [loadingFornecedores, setLoadingFornecedores] = useState(false);
   const [searchFornecedor, setSearchFornecedor] = useState('');
   const [fornecedorModal, setFornecedorModal] = useState(false);
   const [selectedFornecedor, setSelectedFornecedor] = useState<FornecedorType | null>(null);
-  
+
   // Unidades state
-  const { unidades, loading: loadingUnidades, criarUnidade, atualizarUnidade, deletarUnidade, recarregar: recarregarUnidades } = useUnidadesSaude();
+  const [unidades, setUnidades] = useState<UnidadeSaudeType[]>([]);
+  const [loadingUnidades, setLoadingUnidades] = useState(false);
   const [searchUnidade, setSearchUnidade] = useState('');
   const [unidadeModal, setUnidadeModal] = useState(false);
   const [selectedUnidade, setSelectedUnidade] = useState<UnidadeSaudeType | null>(null);
-  
+
   // Snackbar
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
 
+  // ==================== CARREGAR DADOS ====================
+
+  const carregarFornecedores = async () => {
+    setLoadingFornecedores(true);
+    try {
+      const response = await api.get('/fornecedores');
+      setFornecedores(response.data);
+    } catch (error) {
+      console.error('Erro ao carregar fornecedores:', error);
+      setSnackbar({ open: true, message: 'Erro ao carregar fornecedores', severity: 'error' });
+    } finally {
+      setLoadingFornecedores(false);
+    }
+  };
+
+  const carregarUnidades = async () => {
+    setLoadingUnidades(true);
+    try {
+      const response = await api.get('/unidades-saude');
+      setUnidades(response.data);
+    } catch (error) {
+      console.error('Erro ao carregar unidades:', error);
+      setSnackbar({ open: true, message: 'Erro ao carregar unidades', severity: 'error' });
+    } finally {
+      setLoadingUnidades(false);
+    }
+  };
+
+  useEffect(() => {
+    carregarFornecedores();
+    carregarUnidades();
+  }, []);
+
   // ==================== FORNECEDORES ====================
+
   const filteredFornecedores = fornecedores.filter(f =>
     f.nome.toLowerCase().includes(searchFornecedor.toLowerCase()) ||
     f.cnpj.includes(searchFornecedor) ||
-    f.cidade.toLowerCase().includes(searchFornecedor.toLowerCase())
+    (f.cidade && f.cidade.toLowerCase().includes(searchFornecedor.toLowerCase()))
   );
+
+  const handleCreateFornecedor = async (data: any) => {
+    try {
+      const response = await api.post('/fornecedores', data);
+      setFornecedores([...fornecedores, response.data]);
+      setSnackbar({ open: true, message: 'Fornecedor criado com sucesso!', severity: 'success' });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Erro ao criar fornecedor';
+      setSnackbar({ open: true, message, severity: 'error' });
+      throw error;
+    }
+  };
+
+  const handleUpdateFornecedor = async (id: string, data: any) => {
+    try {
+      const response = await api.patch(`/fornecedores/${id}`, data);
+      setFornecedores(fornecedores.map(f => f.id === id ? response.data : f));
+      setSnackbar({ open: true, message: 'Fornecedor atualizado com sucesso!', severity: 'success' });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Erro ao atualizar fornecedor';
+      setSnackbar({ open: true, message, severity: 'error' });
+      throw error;
+    }
+  };
 
   const handleDeleteFornecedor = async (id: string, nome: string) => {
     try {
-      await deletarFornecedor(id);
-      setSnackbar({ open: true, message: `Fornecedor ${nome} excluído`, severity: 'success' });
-      recarregarFornecedores();
-    } catch {
-      setSnackbar({ open: true, message: 'Erro ao excluir fornecedor', severity: 'error' });
+      await api.delete(`/fornecedores/${id}`);
+      setFornecedores(fornecedores.filter(f => f.id !== id));
+      setSnackbar({ open: true, message: `Fornecedor ${nome} excluído com sucesso`, severity: 'success' });
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Erro ao excluir fornecedor';
+      setSnackbar({ open: true, message, severity: 'error' });
     }
   };
 
   // ==================== UNIDADES ====================
+
   const filteredUnidades = unidades.filter(u =>
     u.nome.toLowerCase().includes(searchUnidade.toLowerCase()) ||
-    u.codigo.toLowerCase().includes(searchUnidade.toLowerCase()) ||
-    u.cidade.toLowerCase().includes(searchUnidade.toLowerCase())
+    (u.codigo && u.codigo.toLowerCase().includes(searchUnidade.toLowerCase())) ||
+    (u.cidade && u.cidade.toLowerCase().includes(searchUnidade.toLowerCase()))
   );
+
+  const handleCreateUnidade = async (data: any) => {
+    try {
+      const response = await api.post('/unidades-saude', data);
+      setUnidades([...unidades, response.data]);
+      setSnackbar({ open: true, message: 'Unidade criada com sucesso!', severity: 'success' });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Erro ao criar unidade';
+      setSnackbar({ open: true, message, severity: 'error' });
+      throw error;
+    }
+  };
+
+  const handleUpdateUnidade = async (id: string, data: any) => {
+    try {
+      const response = await api.patch(`/unidades-saude/${id}`, data);
+      setUnidades(unidades.map(u => u.id === id ? response.data : u));
+      setSnackbar({ open: true, message: 'Unidade atualizada com sucesso!', severity: 'success' });
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Erro ao atualizar unidade';
+      setSnackbar({ open: true, message, severity: 'error' });
+      throw error;
+    }
+  };
 
   const handleDeleteUnidade = async (id: string, nome: string) => {
     try {
-      await deletarUnidade(id);
-      setSnackbar({ open: true, message: `Unidade ${nome} excluída`, severity: 'success' });
-      recarregarUnidades();
-    } catch {
-      setSnackbar({ open: true, message: 'Erro ao excluir unidade', severity: 'error' });
+      await api.delete(`/unidades-saude/${id}`);
+      setUnidades(unidades.filter(u => u.id !== id));
+      setSnackbar({ open: true, message: `Unidade ${nome} excluída com sucesso`, severity: 'success' });
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Erro ao excluir unidade';
+      setSnackbar({ open: true, message, severity: 'error' });
     }
   };
 
@@ -170,7 +259,6 @@ export const Cadastro: React.FC = () => {
 
   return (
     <Box sx={styles.container}>
-      {/* Header */}
       <Paper sx={styles.headerPaper}>
         <Typography variant="h4" sx={{ mb: 1 }}>
           Cadastros
@@ -180,7 +268,6 @@ export const Cadastro: React.FC = () => {
         </Typography>
       </Paper>
 
-      {/* Tabs */}
       <Paper sx={{ borderRadius: 3 }}>
         <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)} sx={{ px: 2, pt: 2 }}>
           <Tab icon={<BusinessIcon />} iconPosition="start" label="Fornecedores" />
@@ -233,7 +320,7 @@ export const Cadastro: React.FC = () => {
                 </TableHead>
                 <TableBody>
                   {loadingFornecedores ? (
-                    <TableRow><TableCell colSpan={8} align="center">Carregando...</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={8} align="center"><CircularProgress size={24} /></TableCell></TableRow>
                   ) : filteredFornecedores.length === 0 ? (
                     <TableRow><TableCell colSpan={8} align="center">Nenhum fornecedor encontrado</TableCell></TableRow>
                   ) : (
@@ -246,11 +333,11 @@ export const Cadastro: React.FC = () => {
                           </Box>
                         </TableCell>
                         <TableCell>{f.cnpj}</TableCell>
-                        <TableCell>{f.contato}</TableCell>
-                        <TableCell>{f.telefone}</TableCell>
-                        <TableCell>{f.cidade}/{f.uf}</TableCell>
+                        <TableCell>{f.contato || '-'}</TableCell>
+                        <TableCell>{f.telefone || '-'}</TableCell>
+                        <TableCell>{f.cidade || '-'}/{f.uf || '-'}</TableCell>
                         <TableCell align="center">
-                          <Chip label={`${f.prazoEntrega} dias`} size="small" variant="outlined" />
+                          <Chip label={`${f.prazoEntrega || 7} dias`} size="small" variant="outlined" />
                         </TableCell>
                         <TableCell align="center">
                           <Chip label={f.ativo ? 'Ativo' : 'Inativo'} color={f.ativo ? 'success' : 'default'} size="small" />
@@ -322,7 +409,7 @@ export const Cadastro: React.FC = () => {
                 </TableHead>
                 <TableBody>
                   {loadingUnidades ? (
-                    <TableRow><TableCell colSpan={8} align="center">Carregando...</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={8} align="center"><CircularProgress size={24} /></TableCell></TableRow>
                   ) : filteredUnidades.length === 0 ? (
                     <TableRow><TableCell colSpan={8} align="center">Nenhuma unidade encontrada</TableCell></TableRow>
                   ) : (
@@ -334,13 +421,13 @@ export const Cadastro: React.FC = () => {
                             <Typography variant="body2" fontWeight="bold">{u.nome}</Typography>
                           </Box>
                         </TableCell>
-                        <TableCell>{u.codigo}</TableCell>
+                        <TableCell>{u.codigo || '-'}</TableCell>
                         <TableCell>
-                          <Chip label={tipoLabels[u.tipo]} color={tipoColors[u.tipo]} size="small" />
+                          <Chip label={tipoLabels[u.tipo] || u.tipo} color={tipoColors[u.tipo] || 'default'} size="small" />
                         </TableCell>
-                        <TableCell>{u.responsavel}</TableCell>
-                        <TableCell>{u.telefone}</TableCell>
-                        <TableCell>{u.cidade}/{u.uf}</TableCell>
+                        <TableCell>{u.responsavel || '-'}</TableCell>
+                        <TableCell>{u.telefone || '-'}</TableCell>
+                        <TableCell>{u.cidade || '-'}/{u.uf || '-'}</TableCell>
                         <TableCell align="center">
                           <Chip label={u.ativo ? 'Ativo' : 'Inativo'} color={u.ativo ? 'success' : 'default'} size="small" />
                         </TableCell>
@@ -372,10 +459,15 @@ export const Cadastro: React.FC = () => {
         <DialogContent>
           <FormFornecedor
             fornecedor={selectedFornecedor}
-            onSuccess={() => {
+            onSuccess={async (data) => {
+              if (selectedFornecedor) {
+                await handleUpdateFornecedor(selectedFornecedor.id, data);
+              } else {
+                await handleCreateFornecedor(data);
+              }
               setFornecedorModal(false);
-              recarregarFornecedores();
-              setSnackbar({ open: true, message: 'Fornecedor salvo com sucesso!', severity: 'success' });
+              setSelectedFornecedor(null);
+              await carregarFornecedores();
             }}
             onCancel={() => setFornecedorModal(false)}
           />
@@ -388,10 +480,15 @@ export const Cadastro: React.FC = () => {
         <DialogContent>
           <FormUnidade
             unidade={selectedUnidade}
-            onSuccess={() => {
+            onSuccess={async (data) => {
+              if (selectedUnidade) {
+                await handleUpdateUnidade(selectedUnidade.id, data);
+              } else {
+                await handleCreateUnidade(data);
+              }
               setUnidadeModal(false);
-              recarregarUnidades();
-              setSnackbar({ open: true, message: 'Unidade salva com sucesso!', severity: 'success' });
+              setSelectedUnidade(null);
+              await carregarUnidades();
             }}
             onCancel={() => setUnidadeModal(false)}
           />
@@ -408,15 +505,14 @@ export const Cadastro: React.FC = () => {
 // ==================== FORMULÁRIO FORNECEDOR ====================
 interface FormFornecedorProps {
   fornecedor?: FornecedorType | null;
-  onSuccess: () => void;
+  onSuccess: (data: any) => void;
   onCancel: () => void;
 }
 
 const FormFornecedor: React.FC<FormFornecedorProps> = ({ fornecedor, onSuccess, onCancel }) => {
-  const { criarFornecedor, atualizarFornecedor } = useFornecedores();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [formData, setFormData] = useState<CreateFornecedorDTO>({
+  const [formData, setFormData] = useState({
     nome: fornecedor?.nome || '',
     razaoSocial: fornecedor?.razaoSocial || '',
     cnpj: fornecedor?.cnpj || '',
@@ -447,9 +543,7 @@ const FormFornecedor: React.FC<FormFornecedorProps> = ({ fornecedor, onSuccess, 
     setLoading(true);
     setError('');
     try {
-      if (fornecedor) await atualizarFornecedor(fornecedor.id, formData);
-      else await criarFornecedor(formData);
-      onSuccess();
+      onSuccess(formData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao salvar');
     } finally {
@@ -491,15 +585,14 @@ const FormFornecedor: React.FC<FormFornecedorProps> = ({ fornecedor, onSuccess, 
 // ==================== FORMULÁRIO UNIDADE ====================
 interface FormUnidadeProps {
   unidade?: UnidadeSaudeType | null;
-  onSuccess: () => void;
+  onSuccess: (data: any) => void;
   onCancel: () => void;
 }
 
 const FormUnidade: React.FC<FormUnidadeProps> = ({ unidade, onSuccess, onCancel }) => {
-  const { criarUnidade, atualizarUnidade } = useUnidadesSaude();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [formData, setFormData] = useState<CreateUnidadeSaudeDTO>({
+  const [formData, setFormData] = useState({
     nome: unidade?.nome || '',
     tipo: unidade?.tipo || 'UBS',
     codigo: unidade?.codigo || '',
@@ -528,9 +621,7 @@ const FormUnidade: React.FC<FormUnidadeProps> = ({ unidade, onSuccess, onCancel 
     setLoading(true);
     setError('');
     try {
-      if (unidade) await atualizarUnidade(unidade.id, formData);
-      else await criarUnidade(formData);
-      onSuccess();
+      onSuccess(formData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao salvar');
     } finally {

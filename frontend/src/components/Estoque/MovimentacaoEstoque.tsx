@@ -12,11 +12,7 @@ import {
 import { Add as AddIcon, Remove as RemoveIcon } from '@mui/icons-material';
 import { MedicamentoType } from '../../types';
 
-// Estilos em objeto (não inline)
 const styles = {
-  container: {
-    width: '100%',
-  },
   infoPaper: {
     p: 2,
     mb: 3,
@@ -94,8 +90,7 @@ export const MovimentacaoEstoque: React.FC<MovimentacaoEstoqueProps> = ({ medica
   };
 
   return (
-    <Box sx={styles.container}>
-      {/* Informações do medicamento */}
+    <Box>
       <Paper sx={styles.infoPaper} elevation={0}>
         <Typography variant="body2" color="textSecondary" gutterBottom>
           Medicamento
@@ -111,32 +106,19 @@ export const MovimentacaoEstoque: React.FC<MovimentacaoEstoqueProps> = ({ medica
         </Typography>
       </Paper>
 
-      {/* Toggle buttons para Entrada/Saída */}
-      <ToggleButtonGroup
-        value={tipo}
-        exclusive
-        onChange={handleTipoChange}
-        aria-label="tipo de movimentação"
-        sx={styles.toggleGroup}
-      >
-        <ToggleButton value="ENTRADA" aria-label="entrada" sx={styles.toggleButtonEntrada}>
+      <ToggleButtonGroup value={tipo} exclusive onChange={handleTipoChange} sx={styles.toggleGroup}>
+        <ToggleButton value="ENTRADA" sx={styles.toggleButtonEntrada}>
           <AddIcon sx={{ mr: 1 }} />
           Entrada
         </ToggleButton>
-        <ToggleButton value="SAIDA" aria-label="saída" sx={styles.toggleButtonSaida}>
+        <ToggleButton value="SAIDA" sx={styles.toggleButtonSaida}>
           <RemoveIcon sx={{ mr: 1 }} />
           Saída
         </ToggleButton>
       </ToggleButtonGroup>
 
-      {/* Mensagem de erro */}
-      {error && (
-        <Alert severity="error" sx={styles.alert}>
-          {error}
-        </Alert>
-      )}
+      {error && <Alert severity="error" sx={styles.alert}>{error}</Alert>}
 
-      {/* Campo de quantidade */}
       <TextField
         fullWidth
         type="number"
@@ -148,23 +130,11 @@ export const MovimentacaoEstoque: React.FC<MovimentacaoEstoqueProps> = ({ medica
           setError('');
         }}
         inputProps={{ min: 1 }}
-        helperText={
-          tipo === 'SAIDA'
-            ? `Máximo disponível: ${medicamento.quantidadeAtual} unidades`
-            : 'Digite a quantidade que deseja adicionar'
-        }
+        helperText={tipo === 'SAIDA' ? `Máximo: ${medicamento.quantidadeAtual} unidades` : ''}
         sx={styles.textField}
       />
 
-      {/* Botão de confirmação */}
-      <Button
-        onClick={handleSubmit}
-        variant="contained"
-        color={tipo === 'ENTRADA' ? 'success' : 'warning'}
-        fullWidth
-        size="large"
-        sx={styles.button}
-      >
+      <Button onClick={handleSubmit} variant="contained" color={tipo === 'ENTRADA' ? 'success' : 'warning'} fullWidth size="large" sx={styles.button}>
         Confirmar {tipo === 'ENTRADA' ? 'Entrada' : 'Saída'}
       </Button>
     </Box>

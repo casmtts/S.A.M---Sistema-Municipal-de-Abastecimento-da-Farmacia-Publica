@@ -29,7 +29,7 @@ import { DashboardPage } from '../pages/DashboardPage';
 import { EstoquePage } from '../pages/EstoquePage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
-import Relatorio from '../pages/RelatorioPage';
+import { RelatoriosPage } from '../pages/RelatoriosPage';
 import { CadastroPage } from '../pages/CadastroPage';
 import UsuarioPage from '../pages/UsuarioPage';
 
@@ -102,7 +102,7 @@ const theme = createTheme({
 });
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   if (!token) {
     return <Navigate to="/login" />;
   }
@@ -116,7 +116,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const menuOpen = Boolean(anchorEl);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     setAnchorEl(null);
     navigate('/login');
   };
@@ -248,7 +248,7 @@ export const AppRoutes: React.FC = () => {
           <Route path="/relatorios" element={
             <ProtectedRoute>
               <MainLayout>
-                <Relatorio />
+                <RelatoriosPage />
               </MainLayout>
             </ProtectedRoute>
           } />

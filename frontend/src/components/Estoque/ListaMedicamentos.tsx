@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -28,10 +28,10 @@ import {
   Delete as DeleteIcon,
   Inventory as InventoryIcon,
 } from '@mui/icons-material';
-import { useMedicamentos } from '../../hooks/useMedicamentos';
 import { FormMedicamento } from './FormMedicamento';
 import { MovimentacaoEstoque } from './MovimentacaoEstoque';
 import { MedicamentoType } from '../../types';
+import api from '../../services/api';
 
 // Estilos em objeto (não inline)
 const styles = {
@@ -54,18 +54,37 @@ const styles = {
 };
 
 export const ListaMedicamentos: React.FC = () => {
-  const { medicamentos, loading, atualizarEstoque, recarregar } = useMedicamentos();
+  const [medicamentos, setMedicamentos] = useState<MedicamentoType[]>([]);
+  const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [movimentoVisible, setMovimentoVisible] = useState(false);
   const [selectedMedicamento, setSelectedMedicamento] = useState<MedicamentoType | null>(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
 
+  // Carregar medicamentos da API
+  const carregarMedicamentos = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/medicamentos');
+      setMedicamentos(response.data);
+    } catch (error) {
+      console.error('Erro ao carregar medicamentos:', error);
+      setSnackbar({ open: true, message: 'Erro ao carregar medicamentos', severity: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    carregarMedicamentos();
+  }, []);
+
   const getStatusColor = (medicamento: MedicamentoType): 'error' | 'warning' | 'success' | 'info' => {
     const isCritico = medicamento.quantidadeAtual <= medicamento.quantidadeMinima * 0.5;
     const isBaixo = medicamento.quantidadeAtual <= medicamento.quantidadeMinima;
     const isExcedente = medicamento.quantidadeAtual >= medicamento.quantidadeMaxima;
-    
+
     if (isCritico) return 'error';
     if (isBaixo) return 'warning';
     if (isExcedente) return 'info';
@@ -76,7 +95,7 @@ export const ListaMedicamentos: React.FC = () => {
     const isCritico = medicamento.quantidadeAtual <= medicamento.quantidadeMinima * 0.5;
     const isBaixo = medicamento.quantidadeAtual <= medicamento.quantidadeMinima;
     const isExcedente = medicamento.quantidadeAtual >= medicamento.quantidadeMaxima;
-    
+
     if (isCritico) return 'Crítico';
     if (isBaixo) return 'Baixo';
     if (isExcedente) return 'Excedente';
@@ -89,10 +108,24 @@ export const ListaMedicamentos: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
+      await api.delete(`/medicamentos/${id}`);
       setSnackbar({ open: true, message: 'Medicamento excluído com sucesso', severity: 'success' });
-      await recarregar();
-    } catch {
-      setSnackbar({ open: true, message: 'Erro ao excluir medicamento', severity: 'error' });
+      await carregarMedicamentos();
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Erro ao excluir medicamento';
+      setSnackbar({ open: true, message, severity: 'error' });
+    }
+  };
+
+  const handleUpdateEstoque = async (id: string, quantidade: number, tipo: 'ENTRADA' | 'SAIDA') => {
+    try {
+      await api.patch(`/medicamentos/${id}/estoque`, { quantidade, tipo });
+      setSnackbar({ open: true, message: 'Estoque atualizado com sucesso', severity: 'success' });
+      await carregarMedicamentos();
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Erro ao atualizar estoque';
+      setSnackbar({ open: true, message, severity: 'error' });
+      throw error;
     }
   };
 
@@ -123,8 +156,8 @@ export const ListaMedicamentos: React.FC = () => {
           }}
           sx={styles.searchField}
         />
-        <Button 
-          variant="contained" 
+        <Button
+          variant="contained"
           startIcon={<AddIcon />}
           onClick={() => {
             setSelectedMedicamento(null);
@@ -223,10 +256,10 @@ export const ListaMedicamentos: React.FC = () => {
       </TableContainer>
 
       {/* Modal de Formulário */}
-      <Dialog 
-        open={modalVisible} 
-        onClose={() => setModalVisible(false)} 
-        maxWidth="md" 
+      <Dialog
+        open={modalVisible}
+        onClose={() => setModalVisible(false)}
+        maxWidth="md"
         fullWidth
       >
         <DialogTitle>
@@ -237,7 +270,7 @@ export const ListaMedicamentos: React.FC = () => {
             medicamento={selectedMedicamento}
             onSuccess={() => {
               setModalVisible(false);
-              recarregar();
+              carregarMedicamentos();
             }}
             onCancel={() => setModalVisible(false)}
           />
@@ -245,10 +278,10 @@ export const ListaMedicamentos: React.FC = () => {
       </Dialog>
 
       {/* Modal de Movimentação */}
-      <Dialog 
-        open={movimentoVisible} 
-        onClose={() => setMovimentoVisible(false)} 
-        maxWidth="sm" 
+      <Dialog
+        open={movimentoVisible}
+        onClose={() => setMovimentoVisible(false)}
+        maxWidth="sm"
         fullWidth
       >
         <DialogTitle>Movimentar Estoque</DialogTitle>
@@ -257,9 +290,8 @@ export const ListaMedicamentos: React.FC = () => {
             <MovimentacaoEstoque
               medicamento={selectedMedicamento}
               onSuccess={async (quantidade, tipo) => {
-                await atualizarEstoque(selectedMedicamento.id, quantidade, tipo);
+                await handleUpdateEstoque(selectedMedicamento.id, quantidade, tipo);
                 setMovimentoVisible(false);
-                setSnackbar({ open: true, message: 'Estoque atualizado com sucesso', severity: 'success' });
               }}
             />
           )}

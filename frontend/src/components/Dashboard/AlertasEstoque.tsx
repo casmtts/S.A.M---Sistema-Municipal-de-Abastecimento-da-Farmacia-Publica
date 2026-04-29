@@ -11,7 +11,6 @@ import {
   Box,
   Typography,
 } from '@mui/material';
-import { Warning as WarningIcon, Error as ErrorIcon } from '@mui/icons-material';
 import { MedicamentoType } from '../../types';
 
 interface AlertasEstoqueProps {
@@ -36,7 +35,7 @@ export const AlertasEstoque: React.FC<AlertasEstoqueProps> = ({ criticos, baixos
     <TableContainer component={Paper} elevation={0}>
       <Table size="small">
         <TableHead>
-          <TableRow>
+          <TableRow sx={{ bgcolor: '#f5f5f5' }}>
             <TableCell>Medicamento</TableCell>
             <TableCell align="right">Estoque Atual</TableCell>
             <TableCell align="right">Estoque Mínimo</TableCell>
@@ -47,22 +46,16 @@ export const AlertasEstoque: React.FC<AlertasEstoqueProps> = ({ criticos, baixos
           {todosAlertas.map((medicamento) => {
             const isCritico = criticos.some(c => c.id === medicamento.id);
             return (
-              <TableRow key={medicamento.id}>
-                <TableCell component="th" scope="row">
-                  {medicamento.nome}
-                </TableCell>
+              <TableRow key={medicamento.id} hover>
+                <TableCell>{medicamento.nome}</TableCell>
                 <TableCell align="right">
-                  <Typography
-                    color={isCritico ? 'error' : 'warning'}
-                    fontWeight="bold"
-                  >
+                  <Typography fontWeight="bold" color={isCritico ? 'error' : 'warning'}>
                     {medicamento.quantidadeAtual} un.
                   </Typography>
                 </TableCell>
                 <TableCell align="right">{medicamento.quantidadeMinima} un.</TableCell>
                 <TableCell align="center">
                   <Chip
-                    icon={isCritico ? <ErrorIcon /> : <WarningIcon />}
                     label={isCritico ? 'Crítico' : 'Baixo'}
                     color={isCritico ? 'error' : 'warning'}
                     size="small"
