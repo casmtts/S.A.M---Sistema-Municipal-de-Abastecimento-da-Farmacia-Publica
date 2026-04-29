@@ -80,7 +80,7 @@ O **Sistema de Abastecimento de Medicamentos** foi desenvolvido para otimizar a 
 
 Antes de começar, você vai precisar ter instalado em sua máquina:
 
-- [Node.js](https://nodejs.org/) (v18 ou superior)
+- [Node.js](https://nodejs.org/) (v21 ou superior)
 - [npm](https://www.npmjs.com/) ou [yarn](https://yarnpkg.com/)
 - [Git](https://git-scm.com/)
 - [Docker](https://www.docker.com/) (opcional)
