@@ -79,12 +79,12 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => {
 export const Relatorios: React.FC = () => {
     const [medicamentos, setMedicamentos] = useState<MedicamentoType[]>([]);
     const [pedidos, setPedidos] = useState<PedidoType[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [exportLoading, setExportLoading] = useState(false);
     const [tabValue, setTabValue] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('todos');
-    const [exportDialog, setExportDialog] = useState(false);
-    const [exportType, setExportType] = useState<'pdf' | 'excel' | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     // Carregar dados da API
     const carregarMedicamentos = async () => {
@@ -93,6 +93,7 @@ export const Relatorios: React.FC = () => {
             setMedicamentos(response.data);
         } catch (error) {
             console.error('Erro ao carregar medicamentos:', error);
+            setError('Erro ao carregar medicamentos');
         }
     };
 
@@ -102,6 +103,7 @@ export const Relatorios: React.FC = () => {
             setPedidos(response.data);
         } catch (error) {
             console.error('Erro ao carregar pedidos:', error);
+            setError('Erro ao carregar pedidos');
         }
     };
 
@@ -160,17 +162,71 @@ export const Relatorios: React.FC = () => {
         return new Date(data).toLocaleDateString('pt-BR');
     };
 
-    const handleExport = (type: 'pdf' | 'excel') => {
-        setExportType(type);
-        setExportDialog(true);
-    };
+    // ✅ Função correta para exportar relatórios
+    const handleExport = async (formato: 'pdf' | 'excel') => {
+        setExportLoading(true);
+        setError(null);
 
-    const handleConfirmExport = () => {
-        setTimeout(() => {
-            setExportDialog(false);
-            setExportType(null);
-            alert(`Relatório exportado como ${exportType?.toUpperCase()}!`);
-        }, 1000);
+        // Determinar o tipo de relatório baseado na aba atual
+        let tipo = '';
+        switch (tabValue) {
+            case 0:
+                tipo = 'MEDICAMENTOS';
+                break;
+            case 1:
+                tipo = 'PEDIDOS';
+                break;
+            case 2:
+                tipo = 'MOVIMENTACOES';
+                break;
+            case 3:
+                tipo = 'RESUMO_GERAL';
+                break;
+            default:
+                tipo = 'MEDICAMENTOS';
+        }
+
+        try {
+            const response = await api.post('/relatorios/exportar', {
+                tipo,
+                formato: formato.toUpperCase(),
+            }, {
+                responseType: 'blob',
+            });
+
+            // Verificar se a resposta é um erro (blob de erro)
+            if (response.headers['content-type']?.includes('application/json')) {
+                const text = await response.data.text();
+                const errorData = JSON.parse(text);
+                throw new Error(errorData.message || 'Erro ao gerar relatório');
+            }
+
+            // Criar blob e fazer download
+            const blob = new Blob([response.data], {
+                type: formato === 'pdf'
+                    ? 'application/pdf'
+                    : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+
+            // Nome do arquivo
+            const dataAtual = new Date().toISOString().split('T')[0];
+            link.download = `relatorio_${tipo.toLowerCase()}_${dataAtual}.${formato}`;
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+        } catch (err: any) {
+            console.error('Erro ao exportar:', err);
+            setError(err.message || 'Erro ao gerar relatório');
+        } finally {
+            setExportLoading(false);
+        }
     };
 
     const handlePrint = () => {
@@ -205,24 +261,33 @@ export const Relatorios: React.FC = () => {
                 </Typography>
             </Paper>
 
+            {/* Mensagem de erro */}
+            {error && (
+                <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+                    {error}
+                </Alert>
+            )}
+
             {/* Botões de ação */}
             <Box sx={styles.actionButtons}>
                 <Button
                     variant="contained"
                     startIcon={<PdfIcon />}
                     onClick={() => handleExport('pdf')}
+                    disabled={exportLoading}
                     sx={{ borderRadius: 2 }}
                 >
-                    Exportar PDF
+                    {exportLoading ? <CircularProgress size={24} /> : 'Exportar PDF'}
                 </Button>
                 <Button
                     variant="contained"
                     color="success"
                     startIcon={<ExcelIcon />}
                     onClick={() => handleExport('excel')}
+                    disabled={exportLoading}
                     sx={{ borderRadius: 2 }}
                 >
-                    Exportar Excel
+                    {exportLoading ? <CircularProgress size={24} /> : 'Exportar Excel'}
                 </Button>
                 <Button
                     variant="outlined"
@@ -248,7 +313,6 @@ export const Relatorios: React.FC = () => {
                 <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)} sx={{ px: 2, pt: 2 }}>
                     <Tab label="Medicamentos" />
                     <Tab label="Pedidos" />
-                    <Tab label="Movimentações" />
                     <Tab label="Resumo Geral" />
                 </Tabs>
 
@@ -399,20 +463,8 @@ export const Relatorios: React.FC = () => {
                     </Box>
                 </TabPanel>
 
-                {/* Tab Movimentações */}
-                <TabPanel value={tabValue} index={2}>
-                    <Box sx={{ px: 2, pb: 2 }}>
-                        <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-                            Histórico de movimentações em desenvolvimento
-                        </Typography>
-                        <Alert severity="info">
-                            Em breve: histórico completo de entradas, saídas e dispensas de medicamentos.
-                        </Alert>
-                    </Box>
-                </TabPanel>
-
                 {/* Tab Resumo Geral */}
-                <TabPanel value={tabValue} index={3}>
+                <TabPanel value={tabValue} index={2}>
                     <Box sx={{ px: 2, pb: 2 }}>
                         <Grid container spacing={3}>
                             <Grid item xs={12} md={6}>
@@ -503,30 +555,6 @@ export const Relatorios: React.FC = () => {
                     </Box>
                 </TabPanel>
             </Paper>
-
-            {/* Dialog de Exportação */}
-            <Dialog open={exportDialog} onClose={() => setExportDialog(false)}>
-                <DialogTitle>Exportar Relatório</DialogTitle>
-                <DialogContent>
-                    <Box sx={{ minWidth: 300, py: 2 }}>
-                        <Typography>
-                            Deseja exportar o relatório atual como {exportType?.toUpperCase()}?
-                        </Typography>
-                        <Typography variant="caption" color="textSecondary">
-                            {tabValue === 0 && 'Exportando lista de medicamentos'}
-                            {tabValue === 1 && 'Exportando lista de pedidos'}
-                            {tabValue === 2 && 'Exportando movimentações'}
-                            {tabValue === 3 && 'Exportando resumo geral'}
-                        </Typography>
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setExportDialog(false)}>Cancelar</Button>
-                    <Button onClick={handleConfirmExport} variant="contained" autoFocus>
-                        Confirmar
-                    </Button>
-                </DialogActions>
-            </Dialog>
         </Box>
     );
 };

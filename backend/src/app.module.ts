@@ -10,6 +10,7 @@ import { FornecedoresModule } from './modules/fornecedores/fornecedores.module';
 import { PedidosModule } from './modules/pedidos/pedidos.module';
 import { UnidadesSaudeModule } from './modules/unidadesSaude/unidades-saude.module';
 import { MovimentacoesModule } from './modules/movimentacoes/movimentacoes.module';
+import { RelatoriosModule } from './modules/relatorios/relatorios.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { MovimentacoesModule } from './modules/movimentacoes/movimentacoes.modul
     PedidosModule,
     UnidadesSaudeModule,
     MovimentacoesModule,
+    RelatoriosModule,
   ],
   providers: [
     {
@@ -33,4 +35,4 @@ import { MovimentacoesModule } from './modules/movimentacoes/movimentacoes.modul
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }
