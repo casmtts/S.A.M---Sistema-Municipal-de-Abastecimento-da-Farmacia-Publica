@@ -1,18 +1,21 @@
-import {
-  IsString,
-  IsNumber,
-  IsDate,
-  IsOptional,
-  Min,
-  IsUUID,
+import { 
+  IsString, 
+  IsNumber, 
+  IsDate, 
+  IsOptional, 
+  Min, 
+  Max,
+  IsNotEmpty
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateMedicamentoDto {
   @IsString()
+  @IsNotEmpty()
   nome: string;
 
   @IsString()
+  @IsNotEmpty()
   principioAtivo: string;
 
   @IsOptional()
@@ -52,6 +55,6 @@ export class CreateMedicamentoDto {
   precoUnitario: number;
 
   @IsOptional()
-  @IsUUID()
-  fornecedorId?: string;
+  @IsString()
+  fornecedorId?: string;  
 }
