@@ -1,15 +1,4 @@
-import { IsNumber, IsEnum, Min } from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateMedicamentoDto } from './create-medicamento.dto';
 
-export enum TipoMovimentacao {
-  ENTRADA = 'ENTRADA',
-  SAIDA = 'SAIDA',
-}
-
-export class UpdateEstoqueDto {
-  @IsNumber()
-  @Min(1)
-  quantidade: number;
-
-  @IsEnum(TipoMovimentacao)
-  tipo: TipoMovimentacao;
-}
+export class UpdateMedicamentoDto extends PartialType(CreateMedicamentoDto) {}
