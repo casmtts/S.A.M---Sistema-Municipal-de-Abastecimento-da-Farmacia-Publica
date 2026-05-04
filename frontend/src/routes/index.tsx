@@ -118,7 +118,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const handleLogout = () => {
     sessionStorage.removeItem('token');
     setAnchorEl(null);
-    navigate('/auth/login');
+    navigate('/login');
   };
 
   const navItems = [
@@ -218,10 +218,10 @@ export const AppRoutes: React.FC = () => {
       <CssBaseline />
       <BrowserRouter>
         <Routes>
-          <Route path="/auth/login" element={<LoginPage />} />
-          <Route path="/auth/register" element={<RegisterPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-          <Route path="/dashboard" element={
+          <Route path="/" element={
             <ProtectedRoute>
               <MainLayout>
                 <DashboardPage />
