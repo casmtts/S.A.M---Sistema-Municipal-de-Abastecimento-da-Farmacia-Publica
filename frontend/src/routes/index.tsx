@@ -104,7 +104,7 @@ const theme = createTheme({
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const token = sessionStorage.getItem('token');
   if (!token) {
-    return <Navigate to="/auth/login" />;
+    return <Navigate to="/login" />;
   }
   return <>{children}</>;
 };
@@ -127,7 +127,6 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { label: 'Cadastros', path: '/cadastros', icon: <BusinessIcon fontSize="small" /> },
     { label: 'Relatórios', path: '/relatorios', icon: <TableChart fontSize="small" /> },
     { label: 'Usuários', path: '/usuarios', icon: <People fontSize="small" /> },
-
   ];
 
   return (
@@ -218,10 +217,12 @@ export const AppRoutes: React.FC = () => {
       <CssBaseline />
       <BrowserRouter>
         <Routes>
+          {/* Rotas públicas */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
-          <Route path="/" element={
+          {/* Rotas protegidas */}
+          <Route path="/dashboard" element={
             <ProtectedRoute>
               <MainLayout>
                 <DashboardPage />
@@ -261,8 +262,9 @@ export const AppRoutes: React.FC = () => {
             </ProtectedRoute>
           } />
 
-          <Route path="/" element={<Navigate to="/dashboard" />} />
-          <Route path="*" element={<Navigate to="/dashboard" />} />
+          {/* Redirecionamentos */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
