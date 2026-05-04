@@ -104,7 +104,7 @@ const theme = createTheme({
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const token = sessionStorage.getItem('token');
   if (!token) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/auth/login" />;
   }
   return <>{children}</>;
 };
@@ -118,7 +118,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const handleLogout = () => {
     sessionStorage.removeItem('token');
     setAnchorEl(null);
-    navigate('/login');
+    navigate('/auth/login');
   };
 
   const navItems = [
@@ -218,8 +218,8 @@ export const AppRoutes: React.FC = () => {
       <CssBaseline />
       <BrowserRouter>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/auth/login" element={<LoginPage />} />
+          <Route path="/auth/register" element={<RegisterPage />} />
 
           <Route path="/dashboard" element={
             <ProtectedRoute>
