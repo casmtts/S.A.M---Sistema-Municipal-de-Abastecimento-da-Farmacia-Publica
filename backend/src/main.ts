@@ -9,7 +9,7 @@ async function bootstrap() {
     origin: [
       'http://localhost:3000',
       'http://localhost:5173',
-      'https://s-a-m-sistema-municipal-de-abasteci.vercel.app/',
+      'https://s-a-m-sistema-municipal-de-abasteci.vercel.app',
     ],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
