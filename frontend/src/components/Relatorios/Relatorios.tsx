@@ -80,7 +80,8 @@ export const Relatorios: React.FC = () => {
     const [medicamentos, setMedicamentos] = useState<MedicamentoType[]>([]);
     const [pedidos, setPedidos] = useState<PedidoType[]>([]);
     const [loading, setLoading] = useState(false);
-    const [exportLoading, setExportLoading] = useState(false);
+    const [loadingPdf, setLoadingPdf] = useState(false);  // ✅ Estado separado para PDF
+    const [loadingExcel, setLoadingExcel] = useState(false); // ✅ Estado separado para Excel
     const [tabValue, setTabValue] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('todos');
@@ -162,12 +163,11 @@ export const Relatorios: React.FC = () => {
         return new Date(data).toLocaleDateString('pt-BR');
     };
 
-    // ✅ Função correta para exportar relatórios
-    const handleExport = async (formato: 'pdf' | 'excel') => {
-        setExportLoading(true);
+    // ✅ Função para exportar PDF
+    const handleExportPdf = async () => {
+        setLoadingPdf(true);
         setError(null);
 
-        // Determinar o tipo de relatório baseado na aba atual
         let tipo = '';
         switch (tabValue) {
             case 0:
@@ -177,9 +177,6 @@ export const Relatorios: React.FC = () => {
                 tipo = 'PEDIDOS';
                 break;
             case 2:
-                tipo = 'MOVIMENTACOES';
-                break;
-            case 3:
                 tipo = 'RESUMO_GERAL';
                 break;
             default:
@@ -189,43 +186,88 @@ export const Relatorios: React.FC = () => {
         try {
             const response = await api.post('/relatorios/exportar', {
                 tipo,
-                formato: formato.toUpperCase(),
+                formato: 'PDF',
             }, {
                 responseType: 'blob',
             });
 
-            // Verificar se a resposta é um erro (blob de erro)
             if (response.headers['content-type']?.includes('application/json')) {
                 const text = await response.data.text();
                 const errorData = JSON.parse(text);
                 throw new Error(errorData.message || 'Erro ao gerar relatório');
             }
 
-            // Criar blob e fazer download
-            const blob = new Blob([response.data], {
-                type: formato === 'pdf'
-                    ? 'application/pdf'
-                    : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            });
-
+            const blob = new Blob([response.data], { type: 'application/pdf' });
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-
-            // Nome do arquivo
             const dataAtual = new Date().toISOString().split('T')[0];
-            link.download = `relatorio_${tipo.toLowerCase()}_${dataAtual}.${formato}`;
-
+            link.download = `relatorio_${tipo.toLowerCase()}_${dataAtual}.pdf`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
 
         } catch (err: any) {
-            console.error('Erro ao exportar:', err);
-            setError(err.message || 'Erro ao gerar relatório');
+            console.error('Erro ao exportar PDF:', err);
+            setError(err.message || 'Erro ao gerar relatório PDF');
         } finally {
-            setExportLoading(false);
+            setLoadingPdf(false);
+        }
+    };
+
+    // ✅ Função para exportar Excel
+    const handleExportExcel = async () => {
+        setLoadingExcel(true);
+        setError(null);
+
+        let tipo = '';
+        switch (tabValue) {
+            case 0:
+                tipo = 'MEDICAMENTOS';
+                break;
+            case 1:
+                tipo = 'PEDIDOS';
+                break;
+            case 2:
+                tipo = 'RESUMO_GERAL';
+                break;
+            default:
+                tipo = 'MEDICAMENTOS';
+        }
+
+        try {
+            const response = await api.post('/relatorios/exportar', {
+                tipo,
+                formato: 'EXCEL',
+            }, {
+                responseType: 'blob',
+            });
+
+            if (response.headers['content-type']?.includes('application/json')) {
+                const text = await response.data.text();
+                const errorData = JSON.parse(text);
+                throw new Error(errorData.message || 'Erro ao gerar relatório');
+            }
+
+            const blob = new Blob([response.data], { 
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+            });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            const dataAtual = new Date().toISOString().split('T')[0];
+            link.download = `relatorio_${tipo.toLowerCase()}_${dataAtual}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+        } catch (err: any) {
+            console.error('Erro ao exportar Excel:', err);
+            setError(err.message || 'Erro ao gerar relatório Excel');
+        } finally {
+            setLoadingExcel(false);
         }
     };
 
@@ -251,7 +293,6 @@ export const Relatorios: React.FC = () => {
 
     return (
         <Box sx={styles.container}>
-            {/* Header */}
             <Paper sx={styles.headerPaper}>
                 <Typography variant="h4" sx={{ mb: 1 }}>
                     Relatórios e Análises
@@ -261,33 +302,31 @@ export const Relatorios: React.FC = () => {
                 </Typography>
             </Paper>
 
-            {/* Mensagem de erro */}
             {error && (
                 <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
                     {error}
                 </Alert>
             )}
 
-            {/* Botões de ação */}
             <Box sx={styles.actionButtons}>
                 <Button
                     variant="contained"
                     startIcon={<PdfIcon />}
-                    onClick={() => handleExport('pdf')}
-                    disabled={exportLoading}
+                    onClick={handleExportPdf}
+                    disabled={loadingPdf}
                     sx={{ borderRadius: 2 }}
                 >
-                    {exportLoading ? <CircularProgress size={24} /> : 'Exportar PDF'}
+                    {loadingPdf ? <CircularProgress size={24} /> : 'Exportar PDF'}
                 </Button>
                 <Button
                     variant="contained"
                     color="success"
                     startIcon={<ExcelIcon />}
-                    onClick={() => handleExport('excel')}
-                    disabled={exportLoading}
+                    onClick={handleExportExcel}
+                    disabled={loadingExcel}
                     sx={{ borderRadius: 2 }}
                 >
-                    {exportLoading ? <CircularProgress size={24} /> : 'Exportar Excel'}
+                    {loadingExcel ? <CircularProgress size={24} /> : 'Exportar Excel'}
                 </Button>
                 <Button
                     variant="outlined"

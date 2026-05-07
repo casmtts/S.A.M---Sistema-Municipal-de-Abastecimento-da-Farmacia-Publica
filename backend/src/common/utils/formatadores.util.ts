@@ -5,7 +5,40 @@ export const formatadores = {
     return d.toLocaleDateString('pt-BR');
   },
 
-  // Formatar moeda para R$ X.XXX,XX
+  // Formatar data e hora
+  dataHora: (data: Date | string): string => {
+    const d = new Date(data);
+    return d.toLocaleString('pt-BR');
+  },
+
+  // Formatar hora
+  hora: (data: Date | string): string => {
+    const d = new Date(data);
+    return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  },
+
+  // Data para nome de arquivo
+  dataArquivo: (): string => {
+    const hoje = new Date();
+    return `${hoje.getDate().toString().padStart(2, '0')}-${(hoje.getMonth() + 1).toString().padStart(2, '0')}-${hoje.getFullYear()}`;
+  },
+
+  // Hora para nome de arquivo
+  horaArquivo: (): string => {
+    const hoje = new Date();
+    return `${hoje.getHours().toString().padStart(2, '0')}-${hoje.getMinutes().toString().padStart(2, '0')}`;
+  },
+
+  // Obter data e hora atual formatada
+  getDataHoraAtual: (): { data: string; hora: string } => {
+    const agora = new Date();
+    return {
+      data: agora.toLocaleDateString('pt-BR'),
+      hora: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    };
+  },
+
+  // Moeda brasileira
   moeda: (valor: number): string => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -13,7 +46,7 @@ export const formatadores = {
     }).format(valor);
   },
 
-  // Formatar CPF
+  // CPF
   cpf: (cpf: string): string => {
     if (!cpf) return '';
     const numeros = cpf.replace(/\D/g, '');
@@ -21,7 +54,7 @@ export const formatadores = {
     return numeros.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   },
 
-  // Formatar telefone
+  // Telefone
   telefone: (telefone: string): string => {
     if (!telefone) return '';
     const numeros = telefone.replace(/\D/g, '');

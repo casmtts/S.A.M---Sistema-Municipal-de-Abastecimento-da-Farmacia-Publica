@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { RelatoriosService } from './relatorios.service';
-import { RelatorioOptionsDto } from './dto/relatorio-option.dto';
+import { RelatorioOptionsDto } from './dto/relatorio-options.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../../common/enums/user-role.enum';
 import { RolesGuard } from '../../common/guards/roles.guard';
