@@ -1,0 +1,10 @@
+.topbar { position: relative; }
+.topbar > .MuiStack-root { min-width: 208px; justify-content: flex-end; }
+.profile-menu { min-width: 250px; margin-top: 8px; border: 1px solid #dbe7ff; border-radius: 14px !important; box-shadow: 0 14px 34px rgba(15, 58, 136, .18) !important; overflow: hidden; }
+.profile-menu-header { display: flex; align-items: center; gap: 12px; padding: 16px; background: linear-gradient(135deg, #f4f8ff, #e8f1ff); }
+.profile-menu .MuiMenuItem-root { padding: 11px 16px; font-size: 14px; }
+.profile-menu .MuiMenuItem-root:hover { background: #f4f8ff; color: #123a88; }
+
+.metric-clickable { cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; }
+.metric-clickable:hover, .metric-clickable:focus-visible { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(18, 58, 136, .14) !important; outline: 2px solid #7da5ed; outline-offset: 2px; }
+.alert-modal-row { display: flex; align-items: center; gap: 16px; padding: 14px; border: 1px solid #e0eaff; border-radius: 10px; background: #f9fbff; }

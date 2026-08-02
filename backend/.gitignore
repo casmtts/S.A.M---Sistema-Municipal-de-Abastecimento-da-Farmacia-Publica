@@ -1,0 +1,158 @@
+# Dependências
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build
+dist/
+build/
+.next/
+out/
+.nuxt/
+.swc/
+
+# TypeScript
+*.tsbuildinfo
+*.tsbuildinfo.json
+
+# Ambiente
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.backup
+.env*.local
+
+# IDE e Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-*
+
+# Arquivos do sistema
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Banco de dados
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+
+# Prisma
+prisma/*.db
+prisma/*.db-journal
+prisma/migrations/*.sql
+!prisma/migrations/migration_lock.toml
+
+# Backup
+*.bak
+*.backup
+*.old
+*.orig
+
+# Testes
+coverage/
+.nyc_output/
+*.lcov
+jest-coverage/
+
+# Docker
+*.pid
+*.pid.lock
+docker-compose.override.yml
+
+# Certificados
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Frontend específico
+frontend/.env
+frontend/.env.local
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/.cache/
+
+# Backend específico
+backend/.env
+backend/dist/
+backend/.env.backup
+backend/uploads/
+backend/temp/
+
+# Aplicação
+*.pid
+*.seed
+*.pid.lock
+*.generated.ts
+
+# Relatórios gerados
+*.pdf
+*.xlsx
+*.csv
+*.xls
+
+# Arquivos temporários
+tmp/
+temp/
+*.tmp
+*.temp
+*.cache
+
+# Secrets
+*.secret
+*.secrets
+!.vault.env
+
+# Arquivos de debug
+*.log
+*.log.*
+
+# Arquivos de upload
+uploads/
+media/
+files/
+storage/
+
+# Arquivos de configuração local
+*.local
+*.development
+*.production
+
+# Resultados de testes
+test-results/
+playwright-report/
+screenshots/
+
+# Arquivos de cobertura
+*.cover
+*.coverdata
+/src/generated/prisma
