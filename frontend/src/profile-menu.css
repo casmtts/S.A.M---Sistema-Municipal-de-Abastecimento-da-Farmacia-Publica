@@ -17,5 +17,5 @@
 .metric-change-negative { color: #c23b35 !important; }
 .metric-change-warning { color: #bd7611 !important; }
 .metric-change-neutral { color: #2a6fd6 !important; }
-.MuiSnackbar-root { top: 96px !important; right: 24px !important; bottom: auto !important; left: auto !important; }
+.MuiSnackbar-root { top: 152px !important; right: 24px !important; bottom: auto !important; left: auto !important; }
 @media (max-width: 560px) { .MuiSnackbar-root { top: 88px !important; right: 12px !important; left: 12px !important; } }
