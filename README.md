@@ -1,6 +1,6 @@
 # S.A.M. — Sistema Municipal de Abastecimento
 
-Uma demonstração frontend de um sistema de gestão de medicamentos para redes públicas de saúde. O projeto foi pensado para apresentação a recrutadores: mostra uma experiência SaaS completa, responsiva e com fluxos operacionais realistas.
+Uma demonstração frontend de um sistema de gestão de medicamentos para redes públicas de saúde que está sendo utilizado porém mais atualizado do que este projeto. Essa versão foi pensada para apresentação a recrutadores: mostra uma experiência SaaS completa, responsiva e com fluxos operacionais realistas.
 
 ## O que a demonstração inclui
 
